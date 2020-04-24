@@ -1,0 +1,50 @@
+openapi: 3.0.3
+info:
+  description: Momentous web service spec
+  version: "0.1.0"
+  title: Momentous web service spec
+  contact:
+    email: k.hasan.rajib@gmail.cloud
+# servers:
+# - url: "https://g04p86gv74.execute-api.us-east-1.amazonaws.com/{basePath}"
+#   variables:
+#     basePath:
+#       default: "dev"
+x-amazon-apigateway-request-validators:
+  basic:
+    validateRequestBody: true
+    validateRequestParameters: true
+  params-only:
+    validateRequestBody: false
+    validateRequestParameters: true
+
+x-amazon-apigateway-minimum-compression-size: 1024
+
+
+paths:
+  /cause/list:
+    get:
+      tags:
+      - causes
+      summary: find list of causes
+      operationId: listCausesBy
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: number of records to get
+      
+      responses:
+        200:
+          description: successful operation
+        400:
+          description: bad input parameter
+    #   x-amazon-apigateway-integration:
+    #     uri:
+    #       Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RaveItEventSearchFunction.Arn}/invocations
+    #     httpMethod: POST
+    #     passthroughBehavior: WHEN_NO_TEMPLATES
+    #     contentHandling: CONVERT_TO_TEXT
+    #     type: aws_proxy
+      x-amazon-apigateway-request-validator: basic

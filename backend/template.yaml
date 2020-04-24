@@ -1,0 +1,253 @@
+Transform: 'AWS::Serverless-2016-10-31'
+Globals:
+  Function:
+    Timeout: 30
+    # AutoPublishAlias: live
+  Api:
+    OpenApiVersion: 3.0.3
+    Cors:
+      AllowMethods: "'*'"
+      AllowHeaders: "'*'"
+      AllowOrigin: "'*'"
+
+Parameters:
+
+  Environment:
+    Type: String
+    Description: The environment tag is used to designate the environment stage of the associated AWS resources
+    Default: Development
+    AllowedValues:
+      - Development
+      - Staging
+      - Production
+  CloudFrontUrl:
+    Description: Cloud front url of the front end
+    Type: String
+    Default: https://d2sxk992nc3tir.cloudfront.net
+  
+  FBClientId:
+    Description: Facebook Client id
+    Type: String
+    Default: 319045552080176
+  
+  FBClientSecret:
+    Description: Facebook Client secret
+    Type: String
+    Default: 693727b23f93bde3b28f7d3f0c5a4f35
+  
+  GoogleClientId:
+    Description: Google Client id
+    Type: String
+    Default: 966754109780-b7f06ln6d1duo4iv3i5jcm3260il6p80.apps.googleusercontent.com
+  GoogleClientSecret:
+    Description: Google Client secret
+    Type: String
+    Default: 4XxdPqn1SRAeMr6Pt_VWRVHn
+
+Mappings:
+  Environment:
+    Development:
+      AbbrLowerCase: dev
+      AbbrUpperCase: DEV
+    Staging:
+      AbbrLowerCase: stg
+      AbbrUpperCase: STG
+    Production:
+      AbbrLowerCase: prod
+      AbbrUpperCase: PROD
+
+
+Resources:
+
+  MomentousAuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Auth function
+      CodeUri: ./momentous-authorizer
+      FunctionName: Momentous-api-authorizer
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - Ref: LayerDependencies
+      MemorySize: 256
+      Environment:
+        Variables:
+          AWS_COGNITO_REGION: !Sub ${AWS::Region}
+          COGNITO_USER_POOL_ID: !Ref MomentousUserPool
+          COGNITO_APP_CLIENT_ID: !Ref MomentousCognitoUserPoolClient
+
+
+  MomentousUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub ${AWS::StackName}-users
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+      SmsConfiguration:
+        ExternalId: !Sub ${AWS::StackName}-external
+        SnsCallerArn: !GetAtt SNSCognitoRole.Arn
+      AutoVerifiedAttributes:
+        - email
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+          - Name: verified_phone_number
+            Priority: 2
+      UsernameAttributes:
+        - email
+        - phone_number
+      LambdaConfig:
+        PreSignUp: !GetAtt CognitoSocialLinkerFunction.Arn
+        # PostConfirmation: !GetAtt CognitoPostConfirmationTrigger.Arn
+ 
+  MomentousCognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref MomentousUserPool
+      ClientName: !Sub ${AWS::StackName}-client
+      GenerateSecret: false
+      PreventUserExistenceErrors: ENABLED
+      AllowedOAuthFlowsUserPoolClient: True
+      SupportedIdentityProviders:
+        - COGNITO
+        - Facebook
+        - Google
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthScopes:
+        - phone
+        - email
+        - openid
+        - profile
+        - aws.cognito.signin.user.admin
+      CallbackURLs:
+        - http://localhost:3000
+        - !Ref CloudFrontUrl
+      LogoutURLs:
+        - http://localhost:3000
+        - !Ref CloudFrontUrl
+    DependsOn:
+      - RaveIFacebookIdentityProvider
+      - RaveIGoogleIdentityProvider
+  
+  RaveIFacebookIdentityProvider:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      UserPoolId: !Ref MomentousUserPool
+      ProviderName: "Facebook"
+      ProviderDetails:
+        client_id: !Ref FBClientId
+        client_secret: !Ref FBClientSecret
+        authorize_scopes: "public_profile,email"
+        api_version: v6.0
+      ProviderType: "Facebook"
+      AttributeMapping:
+        email: "email"
+        given_name: "first_name"
+        family_name: "last_name"
+        gender: "gender"
+        locale: "locale"
+        zone_info: "timezone"
+        picture: "picture"
+        
+  RaveIGoogleIdentityProvider:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      UserPoolId: !Ref MomentousUserPool
+      ProviderName: "Google"
+      ProviderDetails:
+        client_id: !Ref GoogleClientId
+        client_secret: !Ref GoogleClientSecret
+        authorize_scopes: "profile email openid"
+      ProviderType: "Google"
+      AttributeMapping:
+        username: "sub"
+        email: "email"
+        email_verified: "email_verified"
+        phone_number: "phoneNumbers"
+        given_name: "given_name"
+        family_name: "family_name"
+        gender: "genders"
+        locale: "locale"
+        picture: "picture"
+  
+  MomentousCognitoUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Join ['-', ['momentous', !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']]]
+      # Domain: Momentous-dev
+      UserPoolId: !Ref MomentousUserPool
+    
+  SNSCognitoRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal: 
+              Service: 
+                - "cognito-idp.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: "CognitoSNSPolicy"
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement: 
+              - Effect: "Allow"
+                Action: "sns:publish"
+                Resource: "*"
+
+  CognitoSocialLinkerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Cognito social function
+      CodeUri: ./momentous-cognito-social-linker
+      FunctionName: Momentous-cognito-social-linker
+      Handler: app.handler
+      Runtime: nodejs12.x
+      MemorySize: 128
+      Tracing: Active
+      Policies:
+        - AmazonCognitoPowerUser
+      Environment:
+        Variables:
+          ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
+          
+  LayerDependencies:
+    Type: 'AWS::Serverless::LayerVersion'
+    Properties:
+      ContentUri: ./layers/dependencies/
+      RetentionPolicy: Delete
+          
+#   MomentousApi:
+#     Type: 'AWS::Serverless::Api'
+#     Properties:
+#       Name: Momentous-Web-Service
+#       StageName: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
+#       # Cors: "'*'"
+#       TracingEnabled: True
+#       DefinitionBody:
+#         'Fn::Transform':
+#           Name: 'AWS::Include'
+#           Parameters:
+#             Location: momentous-openapi.yaml
+#       Auth:
+#       #   DefaultAuthorizer: LambdaTokenAuthorizer
+#         Authorizers:
+#           LambdaTokenAuthorizer:
+#             FunctionArn: !GetAtt MomentousAuthFunction.Arn
+#             Identity:
+#               Header: Authorization
+#               ReauthorizeEvery: 300
+
+
+# Outputs:
+#   ApiUrl:
+#     Description: API url of the Dev environment
+#     Value:
+#       !Join ['/', [!Sub 'https://${MomentousApi}.execute-api.${AWS::Region}.amazonaws.com', !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']]]
