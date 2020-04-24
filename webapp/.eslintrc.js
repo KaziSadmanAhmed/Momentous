@@ -19,5 +19,7 @@ module.exports = {
   ],
   // add your custom rules here
   rules: {
+    'no-console': 'off',
+    'vue/max-attributes-per-line': 'off',
   }
 }
