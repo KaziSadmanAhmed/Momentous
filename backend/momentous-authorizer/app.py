@@ -50,21 +50,7 @@ def lambda_handler(event, context):
     policy.restApiId = apiGatewayArnTmp[0]
     policy.region = tmp[3]
     policy.stage = apiGatewayArnTmp[1]
-    # policy.denyAllMethods()
-
-    user_profile_path = "/users/profile"
-    user_profile_update_exec_path = "/users/profile/{sub}/exec/*".format(
-        sub=claims["sub"]
-    )
-    order_create_path = "/orders/{sub}/create".format(sub=claims["sub"])
-    order_path = "/orders/{sub}".format(sub=claims["sub"])
-    order_path_all = "/orders/{sub}/*".format(sub=claims["sub"])
-    # Approved group
-    policy.allowMethod(HttpVerb.POST, user_profile_path)
-    policy.allowMethod(HttpVerb.GET, user_profile_update_exec_path)
-    policy.allowMethod(HttpVerb.POST, order_create_path)
-    policy.allowMethod(HttpVerb.GET, order_path)
-    policy.allowMethod(HttpVerb.GET, order_path_all)
+    policy.denyAllMethods()
 
     # Finally, build the policy
     authResponse = policy.build()
