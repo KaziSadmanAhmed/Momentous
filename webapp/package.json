@@ -22,8 +22,11 @@
     }
   },
   "dependencies": {
+    "@aws-amplify/auth": "^3.2.4",
+    "@aws-amplify/core": "^3.2.4",
     "@nuxtjs/axios": "^5.3.6",
     "@nuxtjs/pwa": "^3.0.0-0",
+    "aws-amplify-vue": "^2.1.1",
     "nuxt": "^2.0.0"
   },
   "devDependencies": {
