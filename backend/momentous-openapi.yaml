@@ -5,11 +5,11 @@ info:
   title: Momentous web service spec
   contact:
     email: k.hasan.rajib@gmail.cloud
-# servers:
-# - url: "https://g04p86gv74.execute-api.us-east-1.amazonaws.com/{basePath}"
-#   variables:
-#     basePath:
-#       default: "dev"
+servers:
+- url: "https://gkgrkwk5t4.execute-api.us-west-2.amazonaws.com/{basePath}"
+  variables:
+    basePath:
+      default: "dev"
 x-amazon-apigateway-request-validators:
   basic:
     validateRequestBody: true
@@ -40,11 +40,11 @@ paths:
           description: successful operation
         400:
           description: bad input parameter
-    #   x-amazon-apigateway-integration:
-    #     uri:
-    #       Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RaveItEventSearchFunction.Arn}/invocations
-    #     httpMethod: POST
-    #     passthroughBehavior: WHEN_NO_TEMPLATES
-    #     contentHandling: CONVERT_TO_TEXT
-    #     type: aws_proxy
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousCauseListFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
       x-amazon-apigateway-request-validator: basic
