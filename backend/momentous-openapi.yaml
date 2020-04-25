@@ -1,15 +1,15 @@
 openapi: 3.0.3
 info:
   description: Momentous web service spec
-  version: "0.1.0"
+  version: "0.5.0"
   title: Momentous web service spec
   contact:
     email: k.hasan.rajib@gmail.cloud
-# servers:
-# - url: "https://g04p86gv74.execute-api.us-east-1.amazonaws.com/{basePath}"
-#   variables:
-#     basePath:
-#       default: "dev"
+servers:
+  - url: 'https://gkgrkwk5t4.execute-api.us-west-2.amazonaws.com/{basePath}'
+    variables:
+      basePath:
+        default: dev
 x-amazon-apigateway-request-validators:
   basic:
     validateRequestBody: true
@@ -17,15 +17,12 @@ x-amazon-apigateway-request-validators:
   params-only:
     validateRequestBody: false
     validateRequestParameters: true
-
 x-amazon-apigateway-minimum-compression-size: 1024
-
-
 paths:
   /cause/list:
     get:
       tags:
-      - causes
+        - causes
       summary: find list of causes
       operationId: listCausesBy
       parameters:
@@ -34,17 +31,224 @@ paths:
           schema:
             type: integer
           description: number of records to get
-      
       responses:
-        200:
+        '200':
           description: successful operation
-        400:
+        '400':
           description: bad input parameter
-    #   x-amazon-apigateway-integration:
-    #     uri:
-    #       Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RaveItEventSearchFunction.Arn}/invocations
-    #     httpMethod: POST
-    #     passthroughBehavior: WHEN_NO_TEMPLATES
-    #     contentHandling: CONVERT_TO_TEXT
-    #     type: aws_proxy
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousCauseListFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
       x-amazon-apigateway-request-validator: basic
+  '/cause/crud/{user_id}':
+    post:
+      tags:
+        - causes
+      summary: create operation for a cause
+      operationId: createCauseById
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to add a cause
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CauseDetails'
+        description: Cause information to add
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousCauseCRUDFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+  '/cause/crud/{user_id}/{cause_id}':
+    get:
+      tags:
+        - causes
+      summary: retrieve operation for cause
+      operationId: getCauseById
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to get a cause details
+          schema:
+            type: string
+            format: uuid
+        - name: cause_id
+          in: path
+          required: true
+          description: pass a cause id to get a cause details
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousCauseCRUDFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+    put:
+      tags:
+        - causes
+      summary: update operation for a cause
+      operationId: updateCauseById
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to update a cause
+          schema:
+            type: string
+            format: uuid
+        - name: cause_id
+          in: path
+          required: true
+          description: pass a cause id to update a cause
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CauseDetails'
+        description: Cause information to add/update/delete
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousCauseCRUDFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+  
+  /cause/vote/{user_id}/{cause_id}:
+    post:
+      tags:
+        - causes
+      summary: create operation for a vote
+      operationId: createVoteByCauseId
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to vote for a cause
+          schema:
+            type: string
+            format: uuid
+        - name: cause_id
+          in: path
+          required: true
+          description: pass a cause_id to vote for a cause
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoteType'
+        description: Cause information to add
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousCauseVoteFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+    
+    delete:
+      tags:
+        - causes
+      summary: delete operation for a vote
+      operationId: deleteVoteByCauseId
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to delete a vote for a cause
+          schema:
+            type: string
+            format: uuid
+        - name: cause_id
+          in: path
+          required: true
+          description: pass a cause_id to delete a vote for a cause
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousCauseVoteFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+  
+components:
+  schemas:
+    CauseDetails:
+      properties:
+        content:
+          type: string
+        images:
+          type: array
+        cause_status:
+          type: string
+          enum: ["ACTIVE", "ARCHIVED"]
+      required:
+        - content
+        - images
+    VoteType:
+      properties:
+        vote:
+          type: string
+          enum: ['UP', 'DOWN']
+      required:
+        - vote

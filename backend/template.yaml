@@ -48,6 +48,111 @@ Mappings:
 
 Resources:
 
+  MomentousCauseListFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Cause list retrieve function
+      FunctionName: momentous-cause-listing
+      CodeUri: ./momentous-cause-listing-lambda
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - Ref: LayerDependencies
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref MomentousTable
+      MemorySize: 256
+      Tracing: Active
+      Environment:
+        Variables:
+          ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
+          TABLE_NAME: momentous-table
+      Events:
+        GetRecentCauses:
+          Type: Api
+          Properties:
+            Path: /cause/list
+            Method: GET
+            RestApiId:
+              Ref: MomentousApi
+      
+    DependsOn: MomentousTable
+    
+  MomentousCauseCRUDFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Cause CRUD function
+      FunctionName: momentous-cause-crud
+      CodeUri: ./momentous-cause-crud-lambda
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - Ref: LayerDependencies
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MomentousTable
+      MemorySize: 256
+      Tracing: Active
+      Environment:
+        Variables:
+          ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
+          TABLE_NAME: momentous-table
+      Events:
+        CauseGetPut:
+          Type: Api
+          Properties:
+            Path: /cause/crud/{user_id}/{cause_id}
+            Method: ANY
+            RestApiId:
+              Ref: MomentousApi
+        CausePost:
+          Type: Api
+          Properties:
+            Path: /cause/crud/{user_id}
+            Method: POST
+            RestApiId:
+              Ref: MomentousApi
+      
+    DependsOn: MomentousTable
+    
+  MomentousCauseVoteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Cause vote function
+      FunctionName: momentous-cause-vote
+      CodeUri: ./momentous-cause-vote-lambda
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - Ref: LayerDependencies
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MomentousTable
+      MemorySize: 256
+      Tracing: Active
+      Environment:
+        Variables:
+          ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
+          TABLE_NAME: momentous-table
+      Events:
+        CausePostVote:
+          Type: Api
+          Properties:
+            Path: /cause/vote/{user_id}/{cause_id}
+            Method: POST
+            RestApiId:
+              Ref: MomentousApi
+        CauseDeleteVote:
+          Type: Api
+          Properties:
+            Path: /cause/vote/{user_id}/{cause_id}
+            Method: DELETE
+            RestApiId:
+              Ref: MomentousApi
+      
+    DependsOn: MomentousTable
+
+
   MomentousAuthFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -189,31 +294,90 @@ Resources:
     Properties:
       ContentUri: ./layers/dependencies/
       RetentionPolicy: Delete
+      
+  MomentousTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: momentous-table
+      KeySchema:
+      - AttributeName: PK
+        KeyType: HASH
+      - AttributeName: SK
+        KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      AttributeDefinitions:
+      - AttributeName: PK
+        AttributeType: S
+      - AttributeName: SK
+        AttributeType: S
+      - AttributeName: cause_created_at
+        AttributeType: S
+      - AttributeName: cause_total_up_votes
+        AttributeType: N
+      - AttributeName: cause_total_down_votes
+        AttributeType: N
+      - AttributeName: cause_status
+        AttributeType: S
+      LocalSecondaryIndexes:
+      - IndexName: cause_created_at-index
+        KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: cause_created_at
+          KeyType: RANGE
+        Projection:
+          ProjectionType: ALL
+      - IndexName: cause_total_up_votes-index
+        KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: cause_total_up_votes
+          KeyType: RANGE
+        Projection:
+          ProjectionType: ALL
+      - IndexName: cause_total_down_votes-index
+        KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: cause_total_down_votes
+          KeyType: RANGE
+        Projection:
+          ProjectionType: ALL
+      - IndexName: cause_status-index
+        KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: cause_status
+          KeyType: RANGE
+        Projection:
+          ProjectionType: ALL
           
-#   MomentousApi:
-#     Type: 'AWS::Serverless::Api'
-#     Properties:
-#       Name: Momentous-Web-Service
-#       StageName: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
-#       # Cors: "'*'"
-#       TracingEnabled: True
-#       DefinitionBody:
-#         'Fn::Transform':
-#           Name: 'AWS::Include'
-#           Parameters:
-#             Location: momentous-openapi.yaml
-#       Auth:
-#       #   DefaultAuthorizer: LambdaTokenAuthorizer
-#         Authorizers:
-#           LambdaTokenAuthorizer:
-#             FunctionArn: !GetAtt MomentousAuthFunction.Arn
-#             Identity:
-#               Header: Authorization
-#               ReauthorizeEvery: 300
+  MomentousApi:
+    Type: 'AWS::Serverless::Api'
+    Properties:
+      Name: Momentous-Web-Service
+      StageName: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
+      # Cors: "'*'"
+      TracingEnabled: True
+      DefinitionBody:
+        'Fn::Transform':
+          Name: 'AWS::Include'
+          Parameters:
+            Location: momentous-openapi.yaml
+      Auth:
+      #   DefaultAuthorizer: LambdaTokenAuthorizer
+        Authorizers:
+          LambdaTokenAuthorizer:
+            FunctionArn: !GetAtt MomentousAuthFunction.Arn
+            Identity:
+              Header: Authorization
+              ReauthorizeEvery: 300
 
 
-# Outputs:
-#   ApiUrl:
-#     Description: API url of the Dev environment
-#     Value:
-#       !Join ['/', [!Sub 'https://${MomentousApi}.execute-api.${AWS::Region}.amazonaws.com', !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']]]
+Outputs:
+  ApiUrl:
+    Description: API url of the Dev environment
+    Value:
+      !Join ['/', [!Sub 'https://${MomentousApi}.execute-api.${AWS::Region}.amazonaws.com', !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']]]
