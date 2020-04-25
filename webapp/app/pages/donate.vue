@@ -61,7 +61,7 @@ export default {
     },
     speed: {
       get() {
-        return this.miner ? (this.miner.getThrottle() - 1) * 100 : 0
+        return this.miner ? (1 - this.miner.getThrottle()) * 100 : 0
       },
       set(number) {
         if (this.miner) {
