@@ -1,30 +1,37 @@
 <template lang="pug">
   v-layout.mt-12( column justify-center align-center)
     v-container.justify-start.mt-md-12
-      v-card.mx-auto.my-12(max-width="400")
-        v-container
+      v-card.mt-4.mx-auto(max-width="600")
+        v-sheet.v-sheet--offset.mx-auto(color="primary" elevation="12" max-width="calc(100% - 32px)")
+          v-sparkline(:labels="hashesPerSecondHistory" :value="hashesPerSecondHistory" color="white" line-width="2" padding="16")
+        v-card-title.justify-center
+          span.display-1 {{ hashesPerSecond }} hashes/s
+        v-card-subtitle.text-center
+          span.body-1 Hashes: {{ hashes }}
+        v-card-text.pt-0
           v-row(justify="center")
-            v-col(cols="12" xs="4" lg="6")
-              v-container.pa-md-8
-                v-row.mb-6(align="center")
-                  span {{ hashesPerSecond }} hashes/s
-                v-row(align="center")
-                  span {{threads}} threads + / -
-            v-col(cols="12" xs="4" lg="6")
-              v-container.pa-md-8
-                v-row.mb-6(align="center")
-                  span {{ totalHashes }} total hashes
-                v-row(align="center")
-                  span {{ speed }} % speed + / -
+            v-col(cols="12")
+              v-slider(:label="`Speed (${speed}%)`" v-model="speed" min="0" max="100" step="10" :thumb-label="true")
+                template(v-slot:prepend)
+                  v-icon(@click="speed = speed - 10") {{ icons.minus }}
+                template(v-slot:append)
+                  v-icon(@click="speed = speed + 10") {{ icons.plus }}
+            v-col(cols="12")
+              v-slider(:label="`Threads (${threads})`" v-model="threads" min="1" max="4" :thumb-label="true")
+                template(v-slot:prepend)
+                  v-icon(@click="threads--") {{ icons.minus }}
+                template(v-slot:append)
+                  v-icon(@click="threads++") {{ icons.plus }}
 
           v-row(justify="center")
             v-btn(@click="toggleMining" :disabled="!miner")
-              v-icon.mr-2 mdi-play
+              v-icon.mr-2 {{ miner && miner.isRunning() ? icons.stop : icons.play }}
               v-spacer
               span(v-if="miner && miner.isRunning()") Stop donating
               span(v-else) Start donating
 </template>
 <script>
+import { mdiPlus, mdiMinus, mdiPlay, mdiStop } from '@mdi/js'
 export default {
   head() {
     return {
@@ -39,14 +46,21 @@ export default {
   },
   data() {
     return {
-      miner: null
+      icons: {
+        minus: mdiMinus,
+        plus: mdiPlus,
+        play: mdiPlay,
+        stop: mdiStop
+      },
+      miner: null,
+      hashesPerSecondHistory: [0]
     }
   },
   computed: {
     hashesPerSecond() {
       return this.miner ? this.miner.getHashesPerSecond().toFixed(2) : 0
     },
-    totalHashes() {
+    hashes() {
       return this.miner ? this.miner.getTotalHashes() : 0
     },
     threads: {
@@ -55,20 +69,31 @@ export default {
       },
       set(number) {
         if (this.miner) {
-          this.miner.getNumThreads(number)
+          this.miner.setNumThreads(number)
         }
       }
     },
     speed: {
       get() {
-        return this.miner ? (1 - this.miner.getThrottle()) * 100 : 0
+        return this.miner
+          ? parseInt((1 - this.miner.getThrottle()).toFixed(1) * 100)
+          : 0
       },
       set(number) {
         if (this.miner) {
-          const throttle = 1 - number / 100
+          const throttle = (1 - number / 100).toFixed(1)
+          // console.log(throttle)
           this.miner.setThrottle(throttle)
         }
       }
+    }
+  },
+  watch: {
+    hashesPerSecond(value) {
+      this.hashesPerSecondHistory = [
+        ...this.hashesPerSecondHistory.slice(-9),
+        parseInt(value)
+      ]
     }
   },
   methods: {
@@ -86,3 +111,9 @@ export default {
   }
 }
 </script>
+
+<style lang="sass" scoped>
+.v-sheet--offset
+  top: -24px
+  position: relative
+</style>
