@@ -22,6 +22,10 @@ class API {
       params
     })
   }
+
+  listCauses() {
+    return this.get('/causes/list')
+  }
 }
 
 export default API
