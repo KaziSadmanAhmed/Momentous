@@ -9,7 +9,7 @@
                 v-row.mb-6(align="center")
                   span {{ hashesPerSecond }} hashes/s
                 v-row(align="center")
-                  span {{threads}} threads + / -
+                  span {{ threads }} threads + / -
             v-col(cols="12" xs="4" lg="6")
               v-container.pa-md-8
                 v-row.mb-6(align="center")
