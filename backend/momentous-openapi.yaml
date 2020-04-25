@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   description: Momentous web service spec
-  version: "0.5.0"
+  version: "0.6.0"
   title: Momentous web service spec
   contact:
     email: k.hasan.rajib@gmail.cloud
@@ -19,7 +19,7 @@ x-amazon-apigateway-request-validators:
     validateRequestParameters: true
 x-amazon-apigateway-minimum-compression-size: 1024
 paths:
-  /cause/list:
+  /causes/list:
     get:
       tags:
         - causes
@@ -45,7 +45,7 @@ paths:
         contentHandling: CONVERT_TO_TEXT
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
-  '/cause/crud/{user_id}':
+  '/cause/create/{user_id}':
     post:
       tags:
         - causes
@@ -80,7 +80,7 @@ paths:
         contentHandling: CONVERT_TO_TEXT
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
-  '/cause/crud/{user_id}/{cause_id}':
+  '/cause/{user_id}/{cause_id}':
     get:
       tags:
         - causes
@@ -114,6 +114,7 @@ paths:
         contentHandling: CONVERT_TO_TEXT
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
+  '/cause/update/{user_id}/{cause_id}':
     put:
       tags:
         - causes
@@ -155,10 +156,102 @@ paths:
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
   
+  '/user/wallet/{user_id}':
+    get:
+      tags:
+        - user
+      summary: retrieve operation for user wallet
+      operationId: getUserWalletByUserId
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to get user wallet details
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousUserWalletCRUDFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+    
+    post:
+      tags:
+        - user
+      summary: create operation for user wallet
+      operationId: createUserWalletByUserId
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to add a wallet
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousUserWalletCRUDFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+      
+    put:
+      tags:
+        - user
+      summary: update operation for user wallet
+      operationId: updateUserWalletByUserId
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to update wallet
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserWallet'
+        description: Wallet information to update
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousUserWalletCRUDFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+      
   /cause/vote/{user_id}/{cause_id}:
     post:
       tags:
-        - causes
+        - voting
       summary: create operation for a vote
       operationId: createVoteByCauseId
       parameters:
@@ -199,7 +292,7 @@ paths:
     
     delete:
       tags:
-        - causes
+        - voting
       summary: delete operation for a vote
       operationId: deleteVoteByCauseId
       parameters:
@@ -235,6 +328,8 @@ components:
   schemas:
     CauseDetails:
       properties:
+        user_name:
+          type: string
         content:
           type: string
         images:
@@ -252,3 +347,9 @@ components:
           enum: ['UP', 'DOWN']
       required:
         - vote
+    UserWallet:
+      properties:
+        hash_increment:
+          type: integer
+      required:
+        - hash_increment

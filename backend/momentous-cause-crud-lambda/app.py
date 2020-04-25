@@ -104,7 +104,7 @@ def put_cause_details(event, context):
         response = table.update_item(
             Key={"PK": PK, "SK": SK},
             UpdateExpression="SET #content = :content, #images = :images",
-            ConditionExpression="attribute_exists(PK)",
+            ConditionExpression="attribute_exists(SK)",
             ExpressionAttributeNames={"#content": "content", "#images": "images"},
             ExpressionAttributeValues={
                 ":content": payload["content"],
