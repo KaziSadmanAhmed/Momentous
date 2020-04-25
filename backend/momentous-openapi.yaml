@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   description: Momentous web service spec
-  version: "0.4.1"
+  version: "0.5.0"
   title: Momentous web service spec
   contact:
     email: k.hasan.rajib@gmail.cloud
@@ -154,6 +154,83 @@ paths:
         contentHandling: CONVERT_TO_TEXT
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
+  
+  /cause/vote/{user_id}/{cause_id}:
+    post:
+      tags:
+        - causes
+      summary: create operation for a vote
+      operationId: createVoteByCauseId
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to vote for a cause
+          schema:
+            type: string
+            format: uuid
+        - name: cause_id
+          in: path
+          required: true
+          description: pass a cause_id to vote for a cause
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoteType'
+        description: Cause information to add
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousCauseVoteFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+    
+    delete:
+      tags:
+        - causes
+      summary: delete operation for a vote
+      operationId: deleteVoteByCauseId
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to delete a vote for a cause
+          schema:
+            type: string
+            format: uuid
+        - name: cause_id
+          in: path
+          required: true
+          description: pass a cause_id to delete a vote for a cause
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousCauseVoteFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+  
 components:
   schemas:
     CauseDetails:
@@ -168,3 +245,10 @@ components:
       required:
         - content
         - images
+    VoteType:
+      properties:
+        vote:
+          type: string
+          enum: ['UP', 'DOWN']
+      required:
+        - vote

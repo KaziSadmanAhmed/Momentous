@@ -10,52 +10,23 @@ from encoder_class import DecimalEncoder
 
 
 def lambda_handler(event, context):
-    if event["httpMethod"] == "GET":
-        response = get_cause_details(event, context)
-        return response
     if event["httpMethod"] == "POST":
-        response = post_cause_details(event, context)
+        response = post_cause_vote(event, context)
         return response
-    if event["httpMethod"] == "PUT":
-        response = put_cause_details(event, context)
+    if event["httpMethod"] == "DELETE":
+        response = delete_cause_vote(event, context)
         return response
 
 
-def get_cause_details(event, context):
+def post_cause_vote(event, context):
+    import uuid
 
     table = __get_table_client()
     user_id = event["pathParameters"]["user_id"]
     cause_id = event["pathParameters"]["cause_id"]
 
-    PK, SK = _get_keys(user_id, cause_id)
-    print("Key: ", json.dumps({"PK": PK, "SK": SK}, indent=4))
-
-    try:
-        data = table.get_item(Key={"PK": PK, "SK": SK}, ReturnConsumedCapacity="TOTAL")
-        if not data.get("Item"):
-            raise KeyError
-
-    except ClientError as e:
-        print(e.response["Error"]["Message"])
-        return _response(500, {"status": "DynamoDB Client Error"})
-    except KeyError as e:
-        print(e)
-        return _response(404, {"status": "ITEM NOT FOUND"})
-    else:
-        print("GetItem succeeded:")
-        print(json.dumps(data, indent=4, cls=DecimalEncoder))
-
-    return _response(200, data["Item"])
-
-
-def post_cause_details(event, context):
-    import uuid
-
-    table = __get_table_client()
-    user_id = event["pathParameters"]["user_id"]
-    cause_id = str(uuid.uuid4())
-
     payload = json.loads(event["body"])
+    vote = payload["vote"]
     PK, SK = _get_keys(user_id, cause_id)
     print("Key: ", json.dumps({"PK": PK, "SK": SK}, indent=4))
     item = dict(payload)
@@ -64,11 +35,8 @@ def post_cause_details(event, context):
             "PK": PK,
             "SK": SK,
             "user_id": user_id,
-            "cause_total_down_votes": 0,
-            "cause_created_at": _date_time_now(),
-            "cause_status": "ACTIVE",
-            "cause_total_up_votes": 0,
             "cause_id": cause_id,
+            "vote_created_at": _date_time_now(),
         }
     )
 
@@ -86,32 +54,41 @@ def post_cause_details(event, context):
     else:
         print("PutItem succeeded:")
         print(json.dumps(item, indent=4, cls=DecimalEncoder))
-    return _response(201, item)
+        PK, SK = _get_cause_keys(user_id, cause_id)
+        if item["vote"] == "UP":
+            vote_attribute = "cause_total_up_votes"
+        else:
+            vote_attribute = "cause_total_down_votes"
+        response = table.update_item(
+            Key={"PK": PK, "SK": SK},
+            UpdateExpression="SET #vote = #vote + :vote",
+            ConditionExpression="attribute_exists(SK)",
+            ExpressionAttributeNames={"#vote": vote_attribute},
+            ExpressionAttributeValues={":vote": 1},
+            ReturnValues="ALL_NEW",
+            ReturnConsumedCapacity="TOTAL",
+        )
+    return _response(201, response["Attributes"])
 
 
-def put_cause_details(event, context):
+def delete_cause_vote(event, context):
 
     table = __get_table_client()
     user_id = event["pathParameters"]["user_id"]
     cause_id = event["pathParameters"]["cause_id"]
 
-    payload = json.loads(event["body"])
+    # payload = json.loads(event["body"])
+    # vote = payload["vote"]
     PK, SK = _get_keys(user_id, cause_id)
-    item = dict(payload)
-    item.update({"PK": PK, "SK": SK})
+    # item = dict(payload)
+    # item.update({"PK": PK, "SK": SK})
 
     try:
-        response = table.update_item(
+        response = table.delete_item(
             Key={"PK": PK, "SK": SK},
-            UpdateExpression="SET #content = :content, #images = :images",
-            ConditionExpression="attribute_exists(PK)",
-            ExpressionAttributeNames={"#content": "content", "#images": "images"},
-            ExpressionAttributeValues={
-                ":content": payload["content"],
-                ":images": payload["images"],
-            },
-            ReturnValues="ALL_NEW",
+            ConditionExpression="attribute_exists(SK)",
             ReturnConsumedCapacity="TOTAL",
+            ReturnValues="ALL_OLD",
         )
 
     except ClientError as e:
@@ -121,15 +98,36 @@ def put_cause_details(event, context):
         print(e.response["Error"]["Message"])
         return _response(500, {"status": "DynamoDB Client Error"})
     else:
-        print("PutItem succeeded:")
-        # print(json.dumps(table_record, indent=4, cls=DecimalEncoder))
-    print("Item update response: ", response)
-    if not response.get("Attributes"):
-        return _response(404, {"status": "ITEM NOT FOUND"})
-    return _response(200, item)
+        print("DeleteItem succeeded:")
+        PK, SK = _get_cause_keys(user_id, cause_id)
+        if response["Attributes"]["vote"] == "UP":
+            vote_attribute = "cause_total_up_votes"
+        else:
+            vote_attribute = "cause_total_down_votes"
+        response = table.update_item(
+            Key={"PK": PK, "SK": SK},
+            UpdateExpression="SET #vote = #vote - :vote",
+            ConditionExpression="attribute_exists(SK)",
+            ExpressionAttributeNames={"#vote": vote_attribute},
+            ExpressionAttributeValues={":vote": 1},
+            ReturnValues="ALL_NEW",
+            ReturnConsumedCapacity="TOTAL",
+        )
+    print("Item delete response: ", response)
+
+    return _response(200, response["Attributes"])
 
 
 def _get_keys(user_id, cause_id):
+    pk = "MOMENTOUS#cause#vote"
+    sk = "CAUSE#" + cause_id + "#USER#" + user_id
+    return (
+        pk,
+        sk,
+    )
+
+
+def _get_cause_keys(user_id, cause_id):
     pk = "MOMENTOUS#cause"
     sk = "USER#" + user_id + "#CAUSE#" + cause_id
     return (
