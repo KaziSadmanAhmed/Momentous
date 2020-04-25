@@ -11,6 +11,11 @@ class API {
     this.setToken(false)
   }
 
+  async createWallet(id) {
+    const res = await this.post('user/wallet/' + id)
+    return res
+  }
+
   get(resource, params = {}) {
     return this.$http.$get(resource, {
       params
