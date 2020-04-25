@@ -66,7 +66,7 @@ Resources:
       Environment:
         Variables:
           ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
-          TABLE_NAME: momentous-table
+          TABLE_NAME: !Ref MomentousTable
       Events:
         GetRecentCauses:
           Type: Api
@@ -96,7 +96,7 @@ Resources:
       Environment:
         Variables:
           ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
-          TABLE_NAME: momentous-table
+          TABLE_NAME: !Ref MomentousTable
       Events:
         GetLeaders:
           Type: Api
@@ -126,7 +126,7 @@ Resources:
       Environment:
         Variables:
           ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
-          TABLE_NAME: momentous-table
+          TABLE_NAME: !Ref MomentousTable
       Events:
         CauseGetPut:
           Type: Api
@@ -154,7 +154,7 @@ Resources:
       Environment:
         Variables:
           ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
-          TABLE_NAME: momentous-table
+          TABLE_NAME: !Ref MomentousTable
       Events:
         CauseGet:
           Type: Api
@@ -198,7 +198,7 @@ Resources:
       Environment:
         Variables:
           ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
-          TABLE_NAME: momentous-table
+          TABLE_NAME: !Ref MomentousTable
       Events:
         CausePostVote:
           Type: Api
