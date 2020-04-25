@@ -54,18 +54,20 @@ def post_user_wallet_details(event, context):
     payload = json.loads(event["body"])
     PK, SK = _get_keys(user_id)
     print("Key: ", json.dumps({"PK": PK, "SK": SK}, indent=4))
-    # item = dict(payload)
+    item = dict(payload)
     # hash_generated_total = int(item["hash_generated_daily"]) + int(item["hash_balance"])
-    item = {
-        "PK": PK,
-        "SK": SK,
-        "user_id": user_id,
-        "hash_generated_total": 0,
-        "hash_generated_daily": 0,
-        "hash_balance": 0,
-        "wallet_created_at": _date_time_now(),
-        "wallet_updated_at": _date_time_now(),
-    }
+    item.update(
+        {
+            "PK": PK,
+            "SK": SK,
+            "user_id": user_id,
+            "hash_generated_total": 0,
+            "hash_generated_daily": 0,
+            "hash_balance": 0,
+            "wallet_created_at": _date_time_now(),
+            "wallet_updated_at": _date_time_now(),
+        }
+    )
 
     try:
         table.put_item(

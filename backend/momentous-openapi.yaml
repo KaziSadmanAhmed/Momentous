@@ -198,6 +198,13 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserWalletPost'
+                
       responses:
         '200':
           description: successful operation
@@ -323,6 +330,39 @@ paths:
         contentHandling: CONVERT_TO_TEXT
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
+      
+  /users/leaderboard:
+    get:
+      tags:
+        - leaders
+      summary: find list of leader
+      operationId: listUsersByTotalHash
+      parameters:
+        - name: order
+          in: query
+          description: pass an TOTAL or DAILY for sorting
+          schema:
+            type: string
+            enum: ["TOTAL", "DAILY"]
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: number of records to get
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousLeadersListFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
   
 components:
   schemas:
@@ -353,3 +393,9 @@ components:
           type: integer
       required:
         - hash_increment
+    UserWalletPost:
+      properties:
+        user_name:
+          type: string
+      required:
+        - user_name

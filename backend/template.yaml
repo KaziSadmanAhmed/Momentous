@@ -77,6 +77,36 @@ Resources:
               Ref: MomentousApi
       
     DependsOn: MomentousTable
+    
+  MomentousLeadersListFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Leader list retrieve function
+      FunctionName: momentous-leaders-listing
+      CodeUri: ./momentous-leaders-listing-lambda
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - Ref: LayerDependencies
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref MomentousTable
+      MemorySize: 256
+      Tracing: Active
+      Environment:
+        Variables:
+          ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
+          TABLE_NAME: momentous-table
+      Events:
+        GetLeaders:
+          Type: Api
+          Properties:
+            Path: /users/leaderboard
+            Method: GET
+            RestApiId:
+              Ref: MomentousApi
+      
+    DependsOn: MomentousTable
   
   MomentousUserWalletCRUDFunction:
     Type: AWS::Serverless::Function
