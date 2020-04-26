@@ -22,6 +22,13 @@
           p.white--text.text-center {{userEmail}}
       v-divider
       v-container
+        v-row.pt-3
+          v-col
+            p.my-1.subtitle.white--text.text-center Hash Balance: {{ wallet.hash_balance || 0 }}
+            p.my-1.subtitle.white--text.text-center Total Hashes: {{ wallet.hash_generated_total || 0 }}
+            p.my-1.subititle.white--text.text-center Today's Hashes: {{ wallet.hash_generated_total || 0 }}
+      v-divider
+      v-container
         v-list(dense nav class="py-0")
           v-list-item-group
             v-list-item(v-for="link in sidebarLinks" :key="link.title" link :to="{name: link.name}")
@@ -30,7 +37,7 @@
                     h3.text-center {{ link.title }}
       <!-- logout button -->
       template(v-slot:append)
-        div.pa-2.mb-5.mb-md-12
+        div.pa-2
           v-btn(v-if="isAuthenticated" outlined block color="white" @click="signOut") Sign out
           v-btn(v-else outlined block color="white" @click="openRegisterModal = !openRegisterModal") Register
       v-dialog(width="550" v-model="openRegisterModal")
@@ -50,6 +57,7 @@
         nuxt
 </template>
 <script>
+import { mapGetters } from 'vuex'
 import LoginOrRegister from '../components/loginOrRegister'
 export default {
   components: {
@@ -69,6 +77,11 @@ export default {
         { title: 'Cause Wall', name: 'causewall' }
       ]
     }
+  },
+  computed: {
+    ...mapGetters({
+      wallet: 'wallet/getWallet'
+    })
   },
   created() {
     if (this.$auth.isAuthenticated()) {

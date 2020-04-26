@@ -107,12 +107,16 @@ export default {
         ads: 0
       }
       if (this.$auth.isAuthenticated()) {
-        const user = this.$auth.getUser()
+        const userId = this.$auth.getUser().sub
         this.miner = new window.Client.User(
           process.env.COINIMP_SITE_KEY,
-          user.sub,
+          userId,
           options
         )
+        this.miner.on('accepted', async (data) => {
+          const wallet = await this.$api.getUserWallet(userId)
+          this.$store.commit('wallet/setWallet', wallet)
+        })
       } else {
         this.miner = new window.Client.Anonymous(
           process.env.COINIMP_SITE_KEY,

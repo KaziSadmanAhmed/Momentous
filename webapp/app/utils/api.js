@@ -50,6 +50,10 @@ class API {
       images: [data.imageUrl]
     })
   }
+
+  getUserWallet(userId) {
+    return this.get(`/user/wallet/${userId}`)
+  }
 }
 
 export default API
