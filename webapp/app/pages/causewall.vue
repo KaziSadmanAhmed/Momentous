@@ -8,18 +8,18 @@
           v-container
             v-row(justify="end")
               v-btn(color="primary" @click="openModal") Post a cause
-            //- if user is authenticated, will let him post cause  
+            //- if user is authenticated, will let him post cause
             v-dialog(v-model="openPostCauseDialog" width="500")
               v-card(width="500")
                 v-card-title.font-weight-regular Let us know what you need
                 v-card-text
-                  v-textarea(auto-grow autofocus clearable color="primary" rows="3")
+                  v-textarea(v-model="newCauseContent" auto-grow autofocus clearable color="primary" rows="3")
                 v-card-actions
                   v-row.px-3(no-gutters justify="space-between" align="center")
                     v-col(cols="12" md="6")
-                      v-file-input(color="primary" accept="image/png, image/jpeg, image/bmp" placeholder="Choose a photo" prepend-icon-inner="mdi-camera")
+                      v-file-input(v-model="newCauseImage" color="primary" accept="image/png, image/jpeg, image/bmp" placeholder="Choose a photo" prepend-icon-inner="mdi-camera")
                     v-col.d-flex.justify-end(cols="12" md="6")
-                      v-btn(color="primary" @click="openPostCauseDialog = !openPostCauseDialog") Share
+                      v-btn(color="primary" @click="createNewCause") Post
             //- if user is authenticated, will not let him post cause but register
             v-dialog(width="550" v-model="openRegisterModal")
               LoginOrRegister
@@ -50,7 +50,7 @@
                   v-card-text
                     h2.font-weight-regular {{ cause.content }}
               v-row.px-3(no-gutters)
-                v-img(:src="cause.images[0]" min-height="250" width="450" aspect-ratio="8/5")
+                v-img(:src="cause.images[0]" min-height="250" width="450" contain)
               v-row.pt-3(no-gutters)
                 v-col(cols="6")
                   v-tooltip(bottom)
@@ -77,6 +77,8 @@ export default {
       openRegisterModal: false,
       isAuthenticated: false,
       openPostCauseDialog: false,
+      newCauseContent: '',
+      newCauseImage: null,
       causes: []
     }
   },
@@ -88,12 +90,25 @@ export default {
   },
   methods: {
     openModal() {
-      console.log(this.isAuthenticated)
       if (this.isAuthenticated) {
         this.openPostCauseDialog = true
       } else {
         this.openRegisterModal = true
       }
+    },
+    async createNewCause() {
+      const userId = this.$auth.getUser().sub
+      const image = await this.$api.uploadCauseImage({
+        userId,
+        image: this.newCauseImage
+      })
+      await this.$api.createCause({
+        userId,
+        content: this.newCauseContent,
+        imageUrl: image.image_url
+      })
+      this.causes = await this.$api.listCauses()
+      this.openPostCauseDialog = false
     }
   }
 }

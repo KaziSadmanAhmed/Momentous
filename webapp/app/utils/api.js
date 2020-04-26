@@ -16,16 +16,12 @@ class API {
     return res
   }
 
-  get(resource, params = {}) {
-    return this.$http.$get(resource, {
-      params
-    })
+  get(resource, config = {}) {
+    return this.$http.$get(resource, config)
   }
 
-  post(resource, data = {}, params = {}) {
-    return this.$http.$post(resource, data, {
-      params
-    })
+  post(resource, data = {}, config = {}) {
+    return this.$http.$post(resource, data, config)
   }
 
   listCauses() {
@@ -34,6 +30,25 @@ class API {
 
   getLeaderboard() {
     return this.get('/users/leaderboard')
+  }
+
+  uploadCauseImage(data) {
+    const formData = new FormData()
+    formData.append('image', data.image)
+    const config = {
+      headers: {
+        'Content-Type': 'multipart/form-dataa',
+        'Image-Size': data.image.size
+      }
+    }
+    return this.post(`/cause/asset/images/${data.userId}`, formData, config)
+  }
+
+  createCause(data) {
+    return this.post(`/cause/create/${data.userId}`, {
+      content: data.content,
+      images: [data.imageUrl]
+    })
   }
 }
 
