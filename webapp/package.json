@@ -30,6 +30,7 @@
     "nuxt": "^2.0.0"
   },
   "devDependencies": {
+    "@mdi/js": "^5.1.45",
     "@nuxtjs/dotenv": "^1.4.1",
     "@nuxtjs/eslint-config": "^1.0.1",
     "@nuxtjs/eslint-module": "^1.0.0",
