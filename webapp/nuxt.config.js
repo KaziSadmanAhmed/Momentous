@@ -33,6 +33,14 @@ export default {
     {
       src: '@/plugins/api.js',
       ssr: false
+    },
+    {
+      src: '~plugins/auth.js',
+      ssr: false
+    },
+    {
+      src: '~plugins/amplify.js',
+      ssr: false
     }
   ],
   /*
