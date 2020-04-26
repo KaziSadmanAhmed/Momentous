@@ -20,8 +20,8 @@
           h3.white--text.text-center {{userName}}
         v-row(align="center" justify="center")
           p.white--text.text-center {{userEmail}}
-      v-divider
-      v-container
+      v-divider(v-if="$auth.isAuthenticated()")
+      v-container(v-if="$auth.isAuthenticated()")
         v-row.pt-3
           v-col
             p.my-1.subtitle.white--text.text-center Hash Balance: {{ wallet.hash_balance || 0 }}
