@@ -57,7 +57,7 @@
                 v-col(cols="6")
                   v-tooltip(bottom)
                     template(v-slot:activator="{on}")
-                      v-btn(text large block @click="upvote")
+                      v-btn(text large block @click="vote(cause.cause_id, 'UP')")
                         v-icon(color="green darken-2" large center) mdi-chevron-up
                         span Up vote ({{ cause.cause_total_up_votes }})
                 v-col(cols="6")
@@ -76,16 +76,23 @@ export default {
   data() {
     return {
       openPostCauseDialog: false,
-      causes: []
+      causes: [],
+      user: {}
+    }
+  },
+  async beforeCreate() {
+    if (this.$auth.isAuthenticated()) {
+      this.isAuthenticated = true
+      this.user = await this.$auth.getUser()
     }
   },
   async created() {
     this.causes = await this.$api.listCauses()
   },
   methods: {
-    upvote() {
+    vote(causeId, type) {
       // this.$api.upVote
-      // this.$api.upVote(user.sub, { user_name: fullname })
+      this.$api.updateVote(this.user.sub, causeId, { vote: type })
     }
   }
 }

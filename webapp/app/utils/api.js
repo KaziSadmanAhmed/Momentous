@@ -32,7 +32,7 @@ class API {
     return this.get('/causes/list')
   }
 
-  async upVote(userId, causeId, type) {
+  async updateVote(userId, causeId, type) {
     const res = await this.post('/cause/vote/' + userId + '/' + causeId, type)
     return res
   }
