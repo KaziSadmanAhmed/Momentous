@@ -10,12 +10,41 @@ from encoder_class import DecimalEncoder
 
 
 def lambda_handler(event, context):
+    if event["httpMethod"] == "GET":
+        response = get_cause_vote(event, context)
+        return response
     if event["httpMethod"] == "POST":
         response = post_cause_vote(event, context)
         return response
     if event["httpMethod"] == "DELETE":
         response = delete_cause_vote(event, context)
         return response
+
+
+def get_cause_vote(event, context):
+    table = __get_table_client()
+    user_id = event["pathParameters"]["user_id"]
+    cause_id = event["pathParameters"]["cause_id"]
+
+    PK, SK = _get_keys(user_id, cause_id)
+    print("Key: ", json.dumps({"PK": PK, "SK": SK}, indent=4))
+
+    try:
+        data = table.get_item(Key={"PK": PK, "SK": SK}, ReturnConsumedCapacity="TOTAL")
+        if not data.get("Item"):
+            raise KeyError
+
+    except ClientError as e:
+        print(e.response["Error"]["Message"])
+        return _response(500, {"status": "DynamoDB Client Error"})
+    except KeyError as e:
+        print(e)
+        return _response(404, {"status": "ITEM NOT FOUND"})
+    else:
+        print("GetItem succeeded:")
+        print(json.dumps(data, indent=4, cls=DecimalEncoder))
+
+    return _response(200, data["Item"])
 
 
 def post_cause_vote(event, context):

@@ -66,7 +66,7 @@ Resources:
       Environment:
         Variables:
           ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
-          TABLE_NAME: !Ref MomentousTable
+          TABLE_NAME: momentous-table
       Events:
         GetRecentCauses:
           Type: Api
@@ -77,6 +77,34 @@ Resources:
               Ref: MomentousApi
       
     DependsOn: MomentousTable
+    
+  MomentousCauseAssetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Cause asset upload function
+      FunctionName: momentous-cause-asset-upload
+      CodeUri: ./momentous-cause-asset-upload-lambda
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - Ref: LayerDependencies
+      Policies:
+        - S3CrudPolicy:
+            BucketName: momentous.cloud
+      MemorySize: 256
+      Tracing: Active
+      Environment:
+        Variables:
+          ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
+          # TABLE_NAME: momentous-table
+      Events:
+        UploadCauseImage:
+          Type: Api
+          Properties:
+            Path: /cause/asset/images/{user_id}
+            Method: POST
+            RestApiId:
+              Ref: MomentousApi
     
   MomentousLeadersListFunction:
     Type: AWS::Serverless::Function
@@ -96,7 +124,7 @@ Resources:
       Environment:
         Variables:
           ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
-          TABLE_NAME: !Ref MomentousTable
+          TABLE_NAME: momentous-table
       Events:
         GetLeaders:
           Type: Api
@@ -126,7 +154,7 @@ Resources:
       Environment:
         Variables:
           ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
-          TABLE_NAME: !Ref MomentousTable
+          TABLE_NAME: momentous-table
       Events:
         CauseGetPut:
           Type: Api
@@ -154,7 +182,7 @@ Resources:
       Environment:
         Variables:
           ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
-          TABLE_NAME: !Ref MomentousTable
+          TABLE_NAME: momentous-table
       Events:
         CauseGet:
           Type: Api
@@ -198,8 +226,15 @@ Resources:
       Environment:
         Variables:
           ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
-          TABLE_NAME: !Ref MomentousTable
+          TABLE_NAME: momentous-table
       Events:
+        CauseGetVote:
+          Type: Api
+          Properties:
+            Path: /cause/vote/{user_id}/{cause_id}
+            Method: GET
+            RestApiId:
+              Ref: MomentousApi
         CausePostVote:
           Type: Api
           Properties:
@@ -216,7 +251,33 @@ Resources:
               Ref: MomentousApi
       
     DependsOn: MomentousTable
-
+  
+  MomentousDonateHashFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Donate function
+      CodeUri: ./momentous-donate-lambda
+      FunctionName: momentous-donate-hash
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - Ref: LayerDependencies
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: !Ref MomentousTable
+      MemorySize: 256
+      Environment:
+        Variables:
+          AWS_COGNITO_REGION: !Sub ${AWS::Region}
+          TABLE_NAME: momentous-table
+      Events:
+        DonateHash:
+          Type: Api
+          Properties:
+            Path: /momentous/hash/donate
+            Method: POST
+            RestApiId:
+              Ref: MomentousApi
 
   MomentousAuthFunction:
     Type: AWS::Serverless::Function

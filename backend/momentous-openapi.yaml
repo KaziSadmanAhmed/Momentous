@@ -1,12 +1,12 @@
 openapi: 3.0.3
 info:
   description: Momentous web service spec
-  version: "0.6.0"
+  version: "0.7.0"
   title: Momentous web service spec
   contact:
     email: k.hasan.rajib@gmail.cloud
 servers:
-  - url: 'https://gkgrkwk5t4.execute-api.us-west-2.amazonaws.com/{basePath}'
+  - url: 'https://n36xprkiki.execute-api.us-west-2.amazonaws.com/{basePath}'
     variables:
       basePath:
         default: dev
@@ -18,6 +18,8 @@ x-amazon-apigateway-request-validators:
     validateRequestBody: false
     validateRequestParameters: true
 x-amazon-apigateway-minimum-compression-size: 1024
+x-amazon-apigateway-binary-media-types:
+  - multipart/form-data
 paths:
   /causes/list:
     get:
@@ -45,6 +47,57 @@ paths:
         contentHandling: CONVERT_TO_TEXT
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
+      
+  /momentous/hash/donate:
+    post:
+      tags:
+        - donate
+      summary: donate all generated hash to the cause
+      operationId: donateToTopCauseUser
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousDonateHashFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+      
+  '/cause/asset/images/{user_id}':
+    post:
+      tags:
+        - causes
+      summary: image upload endpoint
+      operationId: uploadCauseImage
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to add a cause asset
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousCauseAssetFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+  
   '/cause/create/{user_id}':
     post:
       tags:
@@ -114,6 +167,7 @@ paths:
         contentHandling: CONVERT_TO_TEXT
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
+      
   '/cause/update/{user_id}/{cause_id}':
     put:
       tags:
@@ -256,6 +310,40 @@ paths:
       x-amazon-apigateway-request-validator: basic
       
   /cause/vote/{user_id}/{cause_id}:
+    get:
+      tags:
+        - voting
+      summary: retrieve operation for user vote
+      operationId: getUserVoteByUserId
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to get user wallet details
+          schema:
+            type: string
+            format: uuid
+        - name: cause_id
+          in: path
+          required: true
+          description: pass an cause_id to get user voting details
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousCauseVoteFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
     post:
       tags:
         - voting
@@ -336,7 +424,7 @@ paths:
       tags:
         - leaders
       summary: find list of leader
-      operationId: listUsersByTotalHash
+      operationId: listUsersByHash
       parameters:
         - name: order
           in: query
