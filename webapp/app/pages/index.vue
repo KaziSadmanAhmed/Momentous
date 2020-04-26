@@ -1,75 +1,74 @@
-<template>
-  <v-layout column justify-center align-center>
-    <v-flex xs12 sm8 md6>
-      <div class="text-center">
-        <logo />
-        <vuetify-logo />
-      </div>
-      <v-card>
-        <v-card-title class="headline">
-          Welcome to the Vuetify + Nuxt.js template
-        </v-card-title>
-        <v-card-text>
-          <p>
-            Vuetify is a progressive Material Design component framework for
-            Vue.js. It was designed to empower developers to create amazing
-            applications.
-          </p>
-          <p>
-            For more information on Vuetify, check out the
-            <a href="https://vuetifyjs.com" target="_blank"> documentation </a>.
-          </p>
-          <p>
-            If you have questions, please join the official
-            <a href="https://chat.vuetifyjs.com/" target="_blank" title="chat">
-              discord </a
-            >.
-          </p>
-          <p>
-            Find a bug? Report it on the github
-            <a
-              href="https://github.com/vuetifyjs/vuetify/issues"
-              target="_blank"
-              title="contribute"
-            >
-              issue board </a
-            >.
-          </p>
-          <p>
-            Thank you for developing with Vuetify and I look forward to bringing
-            more exciting features in the future.
-          </p>
-          <div class="text-xs-right">
-            <em><small>&mdash; John Leider</small></em>
-          </div>
-          <hr class="my-3" />
-          <a href="https://nuxtjs.org/" target="_blank">
-            Nuxt Documentation
-          </a>
-          <br />
-          <a href="https://github.com/nuxt/nuxt.js" target="_blank">
-            Nuxt GitHub
-          </a>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn color="primary" nuxt to="/inspire">
-            Continue
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-flex>
-  </v-layout>
+<template lang="pug">
+  v-layout( column justify-center align-center)
+    v-container.justify-start
+      v-card.mx-auto.my-12(max-width="1000")
+        v-container
+          v-row(justify="space-between")
+            v-col(cols="12" md="7")
+              v-container.pa-md-8
+                v-row.mb-2.d-flex.d-md-none(align="center" justify="end")
+                  v-btn.white--text(tile small :outlined="openRegisterModal" color="teal darken-1") Sign In
+                  v-btn.white--text(tile small :outlined="!openRegisterModal" color="teal darken-1" @click="openRegisterModal = !openRegisterModal") Register
+                v-row
+                  v-img(height="auto" :src="banner")
+
+            v-col.d-flex.align-start.align-md-end(cols="12" md="5")
+                v-container.pt-0.px-5.pb-md-8.px-md-5
+                  v-row.mb-2.d-none.d-md-flex(align="center" justify="end")
+                    v-btn.white--text(tile small :outlined="openRegisterModal" color="teal darken-1") Sign In
+                    v-btn.white--text(tile small :outlined="!openRegisterModal" color="teal darken-1" @click="openRegisterModal = !openRegisterModal") Register
+
+                  v-dialog(width="500" v-model="openRegisterModal")
+
+                    v-card(width="500")
+                      v-container
+                        v-row( no-gutters)
+                          h2.px-5.pt-5.headline Register
+                        v-row(no-gutters)
+                          v-container
+                            RegisterForm
+
+                  v-row(align="center" justify="space-around")
+                    v-container
+                      v-row
+                        v-container.py-0.py-md-3
+                          h2.headline.teal--text.darken-1 Sign in with
+                      v-row
+                        v-container.pb-0.pt-3.py-md-3
+                          <!-- for smaller device -->
+                          v-btn.mr-2.d-inline.d-md-none(tile small) Google
+                          v-btn.mr-2.white--text.d-inline.d-md-none(tile small color="blue darken-3") Facebook
+                          <!-- for larger device -->
+                          v-btn.mr-2.d-none.d-md-inline(tile large) Google
+                          v-btn.mr-2.white--text.d-none.d-md-inline(tile large color="blue darken-3") Facebook
+
+                  v-row( align="end" justify="center")
+                    v-container
+                      LoginForm
 </template>
 
 <script>
-import Logo from '~/components/Logo.vue'
-import VuetifyLogo from '~/components/VuetifyLogo.vue'
+import RegisterForm from '../components/RegisterForm'
+import Login from '../components/Login'
 
 export default {
   components: {
-    Logo,
-    VuetifyLogo
+    RegisterForm,
+    LoginForm: Login
+  },
+  data() {
+    return {
+      banner: require('../assets/img/reveneu.svg'),
+      tab: null,
+      openRegisterModal: false
+    }
+  },
+  created() {
+    if (this.$auth.isAuthenticated()) {
+      this.$router.push({ name: 'donate' })
+    }
   }
 }
 </script>
+
+<style scoped></style>

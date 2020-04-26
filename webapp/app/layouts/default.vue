@@ -1,92 +1,50 @@
-<template>
-  <v-app dark>
-    <v-navigation-drawer
-      v-model="drawer"
-      :mini-variant="miniVariant"
-      :clipped="clipped"
-      fixed
-      app
-    >
-      <v-list>
-        <v-list-item
-          v-for="(item, i) in items"
-          :key="i"
-          :to="item.to"
-          router
-          exact
-        >
-          <v-list-item-action>
-            <v-icon>{{ item.icon }}</v-icon>
-          </v-list-item-action>
-          <v-list-item-content>
-            <v-list-item-title v-text="item.title" />
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
-    <v-app-bar :clipped-left="clipped" fixed app>
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <v-btn @click.stop="miniVariant = !miniVariant" icon>
-        <v-icon>mdi-{{ `chevron-${miniVariant ? 'right' : 'left'}` }}</v-icon>
-      </v-btn>
-      <v-btn @click.stop="clipped = !clipped" icon>
-        <v-icon>mdi-application</v-icon>
-      </v-btn>
-      <v-btn @click.stop="fixed = !fixed" icon>
-        <v-icon>mdi-minus</v-icon>
-      </v-btn>
-      <v-toolbar-title v-text="title" />
-      <v-spacer />
-      <v-btn @click.stop="rightDrawer = !rightDrawer" icon>
-        <v-icon>mdi-menu</v-icon>
-      </v-btn>
-    </v-app-bar>
-    <v-content>
-      <v-container>
-        <nuxt />
-      </v-container>
-    </v-content>
-    <v-navigation-drawer v-model="rightDrawer" :right="right" temporary fixed>
-      <v-list>
-        <v-list-item @click.native="right = !right">
-          <v-list-item-action>
-            <v-icon light>
-              mdi-repeat
-            </v-icon>
-          </v-list-item-action>
-          <v-list-item-title>Switch drawer (click me)</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
-    <v-footer :fixed="fixed" app>
-      <span>&copy; 2019</span>
-    </v-footer>
-  </v-app>
-</template>
+<template lang="pug">
+  v-app
+    v-app-bar(color="primary" app)
+      v-app-bar-nav-icon(dark @click="drawer = !drawer")
+      v-toolbar-items
+        v-btn(text dark)
+          v-toolbar-title Momentous
 
+    v-navigation-drawer(v-model="drawer" color="primary" fixed app dark)
+      v-container
+        v-row.py-12(justify="center")
+          h2.display-1.white--text Momentous
+          p.white--text Coins for the Community
+      v-divider
+      v-container
+        v-list(dense nav class="py-0")
+          v-list-item-group
+            v-list-item(v-for="link in sidebarLinks" :key="link.title" link :to="{name: link.name}")
+              v-list-item-content
+                v-list-item-title
+                    h3.text-center {{ link.title }}
+
+      template(v-slot:append)
+        div.pa-2.mb-5.mb-md-12
+          v-btn(outlined block color="white" @click="openRegisterModal = !openRegisterModal") Join
+      v-dialog(width="550" v-model="openRegisterModal")
+        LoginOrRegister
+
+    v-content
+      v-container
+        nuxt
+</template>
 <script>
+import LoginOrRegister from '../components/loginOrRegister'
 export default {
+  components: {
+    LoginOrRegister
+  },
   data() {
     return {
-      clipped: false,
-      drawer: false,
-      fixed: false,
-      items: [
-        {
-          icon: 'mdi-apps',
-          title: 'Welcome',
-          to: '/'
-        },
-        {
-          icon: 'mdi-chart-bubble',
-          title: 'Inspire',
-          to: '/inspire'
-        }
-      ],
-      miniVariant: false,
-      right: true,
-      rightDrawer: false,
-      title: 'Vuetify.js'
+      drawer: true,
+      openRegisterModal: false,
+      sidebarLinks: [
+        { title: 'Donate', name: 'donate' },
+        { title: 'Leaderboard', name: 'leaderboard' },
+        { title: 'Cause Wall', name: 'causewall' }
+      ]
     }
   }
 }

@@ -3,10 +3,10 @@ import colors from 'vuetify/es5/util/colors'
 export default {
   customVariables: ['~/assets/variables.scss'],
   theme: {
-    dark: true,
+    light: true,
     themes: {
-      dark: {
-        primary: colors.blue.darken2,
+      light: {
+        primary: colors.teal.darken1,
         accent: colors.grey.darken3,
         secondary: colors.amber.darken3,
         info: colors.teal.lighten1,
@@ -15,5 +15,8 @@ export default {
         success: colors.green.accent3
       }
     }
+  },
+  icons: {
+    iconfont: 'mdiSvg'
   }
 }
