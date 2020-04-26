@@ -60,6 +60,9 @@ export default {
     }
   },
   computed: {
+    user() {
+      return this.$auth.getUser()
+    },
     hashesPerSecond() {
       return this.miner ? this.miner.getHashesPerSecond().toFixed(2) : 0
     },
@@ -92,6 +95,9 @@ export default {
     }
   },
   watch: {
+    user() {
+      window.Client && this.createMiner()
+    },
     hashesPerSecond(value) {
       this.hashesPerSecondHistory = [
         ...this.hashesPerSecondHistory.slice(-9),

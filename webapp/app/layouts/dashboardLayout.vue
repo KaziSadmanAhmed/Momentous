@@ -10,7 +10,7 @@
     <!-- navigation drawer of this app -->
     v-navigation-drawer(v-model="drawer" color="primary" fixed app dark)
       v-container
-        v-row(v-if="isAuthenticated" align="center" justify="center")
+        v-row(v-if="$auth.isAuthenticated()" align="center" justify="center")
           v-avatar(size="150")
             v-img(:src="profile")
         v-row.py-12(v-else justify="center")
@@ -38,7 +38,7 @@
       <!-- logout button -->
       template(v-slot:append)
         div.pa-2
-          v-btn(v-if="isAuthenticated" outlined block color="white" @click="signOut") Sign out
+          v-btn(v-if="$auth.isAuthenticated()" outlined block color="white" @click="signOut") Sign out
           v-btn(v-else outlined block color="white" @click="openRegisterModal = !openRegisterModal") Register
       v-dialog(width="550" v-model="openRegisterModal")
         LoginOrRegister
@@ -66,7 +66,6 @@ export default {
   data() {
     return {
       openRegisterModal: false,
-      isAuthenticated: false,
       userName: '',
       userEmail: '',
       drawer: true,
@@ -85,7 +84,6 @@ export default {
   },
   created() {
     if (this.$auth.isAuthenticated()) {
-      this.isAuthenticated = true
       const user = this.$auth.getUser()
       this.userName = `${user.given_name} ${user.family_name}`
       this.userEmail = `${user.email}`
