@@ -80,18 +80,17 @@ export default {
       user: {}
     }
   },
-  async beforeCreate() {
+  async created() {
+    this.causes = await this.$api.listCauses()
     if (this.$auth.isAuthenticated()) {
       this.isAuthenticated = true
       this.user = await this.$auth.getUser()
     }
   },
-  async created() {
-    this.causes = await this.$api.listCauses()
-  },
   methods: {
     vote(causeId, type) {
       // this.$api.upVote
+      console.log(this.user.sub)
       this.$api.updateVote(this.user.sub, causeId, { vote: type })
     }
   }
