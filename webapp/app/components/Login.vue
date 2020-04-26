@@ -60,6 +60,7 @@ export default {
         .then((res) => {
           this.snackbar = true
           this.isFormLoading = false
+          // this needa be updated to check which page to redirect fron which page
           this.$router.push({
             name: 'donate'
           })

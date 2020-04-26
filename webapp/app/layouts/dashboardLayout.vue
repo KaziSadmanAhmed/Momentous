@@ -25,26 +25,28 @@
       template(v-slot:append)
         div.pa-2.mb-5.mb-md-12
           v-btn(v-if="isAuthenticated" outlined block color="white" @click="signOut") Sign out
-          v-btn(v-else outlined block color="white" @click="redirectHome") Login or Register
+          v-btn(v-else outlined block color="white" @click="openRegisterModal = !openRegisterModal") Register
+      v-dialog(width="550" v-model="openRegisterModal")
+        LoginOrRegister
       //-if user is not registered
-      v-dialog(width="500" v-model="openRegisterModal")
-        v-card(width="500")
-          v-container
-            v-row( no-gutters)
-              h2.px-5.pt-5.headline Register
-            v-row(no-gutters)
-              v-container
-                RegisterForm
+      //- v-dialog(width="500" v-model="openRegisterModal")
+      //-   v-card(width="500")
+      //-     v-container
+      //-       v-row( no-gutters)
+      //-         h2.px-5.pt-5.headline Register
+      //-       v-row(no-gutters)
+      //-         v-container
+      //-           RegisterForm
     <!-- Content of this app   -->
     v-content
       v-container
         nuxt
 </template>
 <script>
-import RegisterForm from '../components/RegisterForm'
+import LoginOrRegister from '../components/loginOrRegister'
 export default {
   components: {
-    RegisterForm
+    LoginOrRegister
   },
   data() {
     return {
@@ -77,9 +79,6 @@ export default {
   methods: {
     signOut() {
       this.$auth.logout()
-    },
-    redirectHome() {
-      this.$router.push({ name: 'index' })
     }
   }
 }

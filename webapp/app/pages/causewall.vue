@@ -7,7 +7,7 @@
         v-col(cols="6" md="3" justify="end")
           v-container
             v-row(justify="end")
-              v-btn(color="primary" @click="redirectHome") Post a cause
+              v-btn(color="primary" @click="openModal") Post a cause
             //- if user is authenticated, will let him post cause  
             v-dialog(v-model="openPostCauseDialog" width="500")
               v-card(width="500")
@@ -21,14 +21,8 @@
                     v-col.d-flex.justify-end(cols="12" md="6")
                       v-btn(color="primary" @click="openPostCauseDialog = !openPostCauseDialog") Share
             //- if user is authenticated, will not let him post cause but register
-            v-dialog(width="500" v-model="openRegisterModal")
-              v-card(width="500")
-                v-container
-                  v-row( no-gutters)
-                    h2.px-5.pt-5.headline Register
-                  v-row(no-gutters)
-                    v-container
-                      RegisterForm
+            v-dialog(width="550" v-model="openRegisterModal")
+              LoginOrRegister
     v-divider
     v-container
       v-row(v-for="cause in causes" :key="cause.cause_id" justify="center")
@@ -72,10 +66,10 @@
                         span Down vote ({{ cause.cause_total_down_votes }})
 </template>
 <script>
-import RegisterForm from '../components/RegisterForm'
+import LoginOrRegister from '../components/loginOrRegister'
 export default {
   components: {
-    RegisterForm
+    LoginOrRegister
   },
   layout: 'dashboardLayout',
   data() {
@@ -88,23 +82,18 @@ export default {
   },
   async created() {
     this.causes = await this.$api.listCauses()
-  },
-  beforeCreate() {
     if (this.$auth.isAuthenticated()) {
       this.isAuthenticated = true
     }
   },
   methods: {
-    // openModal() {
-    //   console.log(this.isAuthenticated)
-    //   if (this.isAuthenticated) {
-    //     this.openPostCauseDialog = true
-    //   } else {
-    //     this.openRegisterModal = true
-    //   }
-    // },
-    redirectHome() {
-      this.$router.push({ name: 'index' })
+    openModal() {
+      console.log(this.isAuthenticated)
+      if (this.isAuthenticated) {
+        this.openPostCauseDialog = true
+      } else {
+        this.openRegisterModal = true
+      }
     }
   }
 }
