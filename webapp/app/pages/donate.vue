@@ -33,6 +33,7 @@
 <script>
 import { mdiPlus, mdiMinus, mdiPlay, mdiStop } from '@mdi/js'
 export default {
+  layout: 'dashboardLayout',
   head() {
     return {
       script: [
