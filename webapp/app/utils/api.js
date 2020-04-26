@@ -31,6 +31,10 @@ class API {
   listCauses() {
     return this.get('/causes/list')
   }
+
+  getLeaderboard() {
+    return this.get('/users/leaderboard')
+  }
 }
 
 export default API
