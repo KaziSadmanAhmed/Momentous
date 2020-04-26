@@ -10,7 +10,7 @@
       v-container
         v-row.py-12(justify="center")
           h2.display-1.white--text Momentous
-          p.white--text Cryptocurrency in good use
+          p.white--text Coins for the community!
       v-divider
       v-container
         v-list(dense nav class="py-0")

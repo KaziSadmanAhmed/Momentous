@@ -1,6 +1,6 @@
 <template lang="pug">
-  v-layout.mt-12( column justify-center align-center)
-    v-container.justify-start.mt-md-12
+  v-layout( column justify-center align-center)
+    v-container.justify-start
       v-card.mx-auto.my-12(max-width="1000")
         v-container
           v-row(justify="space-between")
@@ -11,8 +11,6 @@
                   v-btn.white--text(tile small :outlined="!openRegisterModal" color="teal darken-1" @click="openRegisterModal = !openRegisterModal") Register
                 v-row
                   v-img(height="auto" :src="banner")
-
-
 
             v-col.d-flex.align-start.align-md-end(cols="12" md="5")
                 v-container.pt-0.px-5.pb-md-8.px-md-5
@@ -47,8 +45,6 @@
                   v-row( align="end" justify="center")
                     v-container
                       LoginForm
-
-
 </template>
 
 <script>

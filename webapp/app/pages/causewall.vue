@@ -55,15 +55,17 @@
                 v-col(cols="6")
                   v-tooltip(bottom)
                     template(v-slot:activator="{on}")
-                      v-btn(text large block @click="cause.votes++")
+                      v-btn(text large block @click="giveVote(cause.cause_id, 'UP', cause.SK)")
                         v-icon(color="green darken-2" large center) mdi-chevron-up
                         span Up vote ({{ cause.cause_total_up_votes }})
                 v-col(cols="6")
                   v-tooltip(bottom)
                     template(v-slot:activator="{on}")
-                      v-btn(text large block @click="cause.votes--")
+                      v-btn(text large block @click="giveVote(cause.cause_id, 'DOWN', cause.SK)")
                         v-icon(color="red darken-2" large center) mdi-chevron-down
                         span Down vote ({{ cause.cause_total_down_votes }})
+    v-snackbar(v-model="vote" color="green darken-2")
+      h2 Voted!
 </template>
 <script>
 import LoginOrRegister from '../components/loginOrRegister'
@@ -79,7 +81,8 @@ export default {
       openPostCauseDialog: false,
       newCauseContent: '',
       newCauseImage: null,
-      causes: []
+      causes: [],
+      vote: false
     }
   },
   async created() {
@@ -109,6 +112,22 @@ export default {
       })
       this.causes = await this.$api.listCauses()
       this.openPostCauseDialog = false
+    },
+    async giveVote(causeId, voteType, SK) {
+      if (this.isAuthenticated) {
+        const data = {
+          userId: this.$auth.getUser().sub,
+          causeId,
+          voteType,
+          SK
+        }
+        const res = await this.$api.giveVote(data)
+        this.vote = true
+        this.causes = await this.$api.listCauses()
+        console.log(res)
+      } else {
+        this.openRegisterModal = true
+      }
     }
   }
 }

@@ -51,6 +51,13 @@ class API {
     })
   }
 
+  giveVote(data) {
+    return this.post(`/cause/vote/${data.userId}/${data.causeId}`, {
+      vote: data.voteType,
+      SK: data.SK
+    })
+  }
+
   getUserWallet(userId) {
     return this.get(`/user/wallet/${userId}`)
   }
