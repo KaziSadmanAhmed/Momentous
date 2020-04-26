@@ -1,6 +1,8 @@
 <template lang="pug">
   v-layout.mt-12( column justify-center align-center)
     v-container.justify-start.mt-md-12
+      v-alert.mb-12.mx-auto(v-if="!$auth.isAuthenticated()" dismissible colored-border border="left" elevation="2" type="info" max-width="600") You are donating anonymously. Please login or register to donate publicly.
+
       v-card.mt-4.mx-auto(max-width="600")
         v-sheet.v-sheet--offset.mx-auto(color="primary" elevation="12" max-width="calc(100% - 32px)")
           v-sparkline(:labels="hashesPerSecondHistory" :value="hashesPerSecondHistory" color="white" line-width="2" padding="16")
@@ -99,11 +101,24 @@ export default {
   },
   methods: {
     createMiner() {
-      this.miner = new window.Client.Anonymous(process.env.COINIMP_SITE_KEY, {
+      const options = {
         throttle: 0,
         c: 'w',
         ads: 0
-      })
+      }
+      if (this.$auth.isAuthenticated()) {
+        const user = this.$auth.getUser()
+        this.miner = new window.Client.User(
+          process.env.COINIMP_SITE_KEY,
+          user.sub,
+          options
+        )
+      } else {
+        this.miner = new window.Client.Anonymous(
+          process.env.COINIMP_SITE_KEY,
+          options
+        )
+      }
     },
     toggleMining() {
       this.miner &&
