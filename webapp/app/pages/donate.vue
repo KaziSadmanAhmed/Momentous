@@ -1,6 +1,6 @@
 <template lang="pug">
-  v-layout.mt-12( column justify-center align-center)
-    v-container.justify-start.mt-md-12
+  v-layout( column justify-center align-center)
+    v-container.justify-start
       v-alert.mb-12.mx-auto(v-if="!$auth.isAuthenticated()" dismissible colored-border border="left" elevation="2" type="info" max-width="600") You are donating anonymously. Please login or register to donate publicly.
 
       v-card.mt-4.mx-auto(max-width="600")

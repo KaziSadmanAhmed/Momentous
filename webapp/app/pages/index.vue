@@ -11,7 +11,7 @@
                   v-btn.white--text(tile small :outlined="!openRegisterModal" color="teal darken-1" @click="openRegisterModal = !openRegisterModal") Register
                 v-row
                   v-img(height="auto" :src="banner")
-                    
+
 
 
             v-col.d-flex.align-start.align-md-end(cols="12" md="5")
@@ -47,8 +47,8 @@
                   v-row( align="end" justify="center")
                     v-container
                       LoginForm
-            
-          
+
+
 </template>
 
 <script>
@@ -65,6 +65,11 @@ export default {
       banner: require('../assets/img/reveneu.svg'),
       tab: null,
       openRegisterModal: false
+    }
+  },
+  created() {
+    if (this.$auth.isAuthenticated()) {
+      this.$router.push({ name: 'donate' })
     }
   }
 }

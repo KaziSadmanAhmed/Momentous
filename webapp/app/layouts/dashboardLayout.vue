@@ -1,13 +1,20 @@
 <template lang="pug">
   v-app
+    //- top nav bar
+    v-app-bar(color="primary" app)
+      v-app-bar-nav-icon(dark @click="drawer = !drawer")
+      v-toolbar-items
+        v-btn(text dark)
+          v-toolbar-title Momentous
+
     <!-- navigation drawer of this app -->
-    v-navigation-drawer(v-model="drawer" color="teal darken-1" :right="right" :clipped="clipped" fixed app dark)
+    v-navigation-drawer(v-model="drawer" color="primary" fixed app dark)
       v-container
-        v-row(v-if="isAuthenticated" align="center" justify="center") 
+        v-row(v-if="isAuthenticated" align="center" justify="center")
           v-avatar(size="150")
             v-img(:src="profile")
         v-row.py-12(v-else justify="center")
-          h2.display-1.white--text Momentous   
+          h2.display-1.white--text Momentous
           p.white--text Cryptocurrency in good use
         v-row.pt-3(align="center" justify="center")
           h3.white--text.text-center {{userName}}
@@ -16,11 +23,11 @@
       v-divider
       v-container
         v-list(dense nav class="py-0")
-          v-list-item-group(v-model="selected")
-            v-list-item(v-for="item in items" :key="item.title" link :to="item.path")
+          v-list-item-group
+            v-list-item(v-for="link in sidebarLinks" :key="link.title" link :to="{name: link.name}")
               v-list-item-content
                 v-list-item-title
-                    h3.text-center {{ item.title }}
+                    h3.text-center {{ link.title }}
       <!-- logout button -->
       template(v-slot:append)
         div.pa-2.mb-5.mb-md-12
@@ -56,16 +63,11 @@ export default {
       userEmail: '',
       drawer: true,
       profile: require('../assets/img/ironMan.jpeg'),
-      item: 0,
-      items: [
-        { title: 'Donate', path: '/donate' },
-        { title: 'Leaderboard', path: '/leaderboard' },
-        { title: 'Cause Wall', path: '/causewall' }
-      ],
-      right: false,
-      miniVariant: false,
-      clipped: false,
-      selected: 1
+      sidebarLinks: [
+        { title: 'Donate', name: 'donate' },
+        { title: 'Leaderboard', name: 'leaderboard' },
+        { title: 'Cause Wall', name: 'causewall' }
+      ]
     }
   },
   created() {
