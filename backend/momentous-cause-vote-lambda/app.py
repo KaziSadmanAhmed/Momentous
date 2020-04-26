@@ -2,6 +2,7 @@ import os
 import boto3
 import json
 import decimal
+import urllib.parse
 from pprint import pprint as pp
 
 from boto3.dynamodb.conditions import Key, Attr
@@ -84,6 +85,7 @@ def post_cause_vote(event, context):
         print("PutItem succeeded:")
         print(json.dumps(item, indent=4, cls=DecimalEncoder))
         PK, SK = _get_cause_keys(user_id, cause_id)
+        SK = urllib.parse.unquote(payload["SK"])
         if item["vote"] == "UP":
             vote_attribute = "cause_total_up_votes"
         else:
@@ -129,6 +131,9 @@ def delete_cause_vote(event, context):
     else:
         print("DeleteItem succeeded:")
         PK, SK = _get_cause_keys(user_id, cause_id)
+        SK = urllib.parse.unquote(event["pathParameters"]["SK"])
+
+        print("ITEM SK " + SK)
         if response["Attributes"]["vote"] == "UP":
             vote_attribute = "cause_total_up_votes"
         else:

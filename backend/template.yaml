@@ -245,7 +245,7 @@ Resources:
         CauseDeleteVote:
           Type: Api
           Properties:
-            Path: /cause/vote/{user_id}/{cause_id}
+            Path: /cause/vote/{user_id}/{cause_id}/{SK}
             Method: DELETE
             RestApiId:
               Ref: MomentousApi

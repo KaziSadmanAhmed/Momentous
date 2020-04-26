@@ -82,6 +82,7 @@ paths:
           description: pass an user_id to add a cause asset
           schema:
             type: string
+            minLength: 10
             format: uuid
       responses:
         '200':
@@ -111,6 +112,7 @@ paths:
           description: pass an user_id to add a cause
           schema:
             type: string
+            minLength: 10
             format: uuid
       requestBody:
         required: true
@@ -146,6 +148,7 @@ paths:
           description: pass an user_id to get a cause details
           schema:
             type: string
+            minLength: 10
             format: uuid
         - name: cause_id
           in: path
@@ -153,6 +156,7 @@ paths:
           description: pass a cause id to get a cause details
           schema:
             type: string
+            minLength: 10
       responses:
         '200':
           description: successful operation
@@ -181,6 +185,7 @@ paths:
           description: pass an user_id to update a cause
           schema:
             type: string
+            minLength: 10
             format: uuid
         - name: cause_id
           in: path
@@ -188,6 +193,7 @@ paths:
           description: pass a cause id to update a cause
           schema:
             type: string
+            minLength: 10
       requestBody:
         required: true
         content:
@@ -223,6 +229,7 @@ paths:
           description: pass an user_id to get user wallet details
           schema:
             type: string
+            minLength: 10
             format: uuid
       responses:
         '200':
@@ -251,6 +258,7 @@ paths:
           description: pass an user_id to add a wallet
           schema:
             type: string
+            minLength: 10
             format: uuid
       requestBody:
         required: true
@@ -286,6 +294,7 @@ paths:
           description: pass an user_id to update wallet
           schema:
             type: string
+            minLength: 10
             format: uuid
       requestBody:
         required: true
@@ -322,6 +331,7 @@ paths:
           description: pass an user_id to get user wallet details
           schema:
             type: string
+            minLength: 10
             format: uuid
         - name: cause_id
           in: path
@@ -329,6 +339,7 @@ paths:
           description: pass an cause_id to get user voting details
           schema:
             type: string
+            minLength: 10
             format: uuid
       responses:
         '200':
@@ -356,6 +367,7 @@ paths:
           description: pass an user_id to vote for a cause
           schema:
             type: string
+            minLength: 10
             format: uuid
         - name: cause_id
           in: path
@@ -363,6 +375,7 @@ paths:
           description: pass a cause_id to vote for a cause
           schema:
             type: string
+            minLength: 10
       requestBody:
         required: true
         content:
@@ -384,7 +397,8 @@ paths:
         contentHandling: CONVERT_TO_TEXT
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
-    
+  
+  /cause/vote/{user_id}/{cause_id}/{SK}:  
     delete:
       tags:
         - voting
@@ -397,6 +411,7 @@ paths:
           description: pass an user_id to delete a vote for a cause
           schema:
             type: string
+            minLength: 10
             format: uuid
         - name: cause_id
           in: path
@@ -404,6 +419,14 @@ paths:
           description: pass a cause_id to delete a vote for a cause
           schema:
             type: string
+            minLength: 10
+        - name: SK
+          in: path
+          required: true
+          description: pass a SK of the cause
+          schema:
+            type: string
+            minLength: 10
       responses:
         '200':
           description: successful operation
@@ -473,8 +496,11 @@ components:
         vote:
           type: string
           enum: ['UP', 'DOWN']
+        SK:
+          type: string
       required:
         - vote
+        - SK
     UserWallet:
       properties:
         hash_increment:
