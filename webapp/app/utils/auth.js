@@ -104,7 +104,7 @@ class Auth {
     }).then((user) => {
       this.setSession(user.signInUserSession)
       this.setUser(user)
-      // store.$api.setToken(this.getAccessToken())
+      store.$api.setToken(this.getAccessToken())
       return user
     })
   }

@@ -11,8 +11,8 @@ class API {
     this.setToken(false)
   }
 
-  async createWallet(id) {
-    const res = await this.post('user/wallet/' + id)
+  async createWallet(id, fullname) {
+    const res = await this.post('user/wallet/' + id, fullname)
     return res
   }
 

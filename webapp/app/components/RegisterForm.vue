@@ -1,10 +1,10 @@
 <template lang="pug">
   section#Register
     v-form.pa-3(v-model="valid" @submit.prevent="register()")
-      v-text-field(v-model="userInfo.given_name" :rules="[required('First name')]"
+      v-text-field(v-model="userInfo.givenName" :rules="[required('First name')]"
         color="teal darken-1"
         label="First Name")
-      v-text-field( v-model="userInfo.family_name" :rules="[required('Last name')]"
+      v-text-field( v-model="userInfo.familyName" :rules="[required('Last name')]"
         color="teal darken-1"
         label="Last Name")
       v-text-field(v-model="userInfo.email" :rules="[required('email'), emailFormat()]"
@@ -57,9 +57,14 @@ export default {
       isVisible: false
     }
   },
+  // computed: {
+  //   user() {
+  //     return this.$auth.getUser()
+  //   }
+  // },
   methods: {
     login() {
-      this.$auth
+      return this.$auth
         .login({
           username: this.userInfo.email,
           password: this.userInfo.password
@@ -111,8 +116,13 @@ export default {
           code: this.verificationCode
         })
         .then(async (res) => {
-          this.$api.createWallet(this.userInfo.email)
           await this.login()
+          const user = await this.$auth.getUser()
+          const fullname =
+            this.userInfo.givenName + ' ' + this.userInfo.familyName
+          console.log(user)
+          console.log(user.sub)
+          await this.$api.createWallet(user.sub, { user_name: fullname })
           // this.$store.commit('setSnackbar', true)
         })
         .catch((err) => console.log(err))
