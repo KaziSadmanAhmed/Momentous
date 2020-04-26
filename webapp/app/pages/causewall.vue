@@ -57,7 +57,7 @@
                 v-col(cols="6")
                   v-tooltip(bottom)
                     template(v-slot:activator="{on}")
-                      v-btn(text large block @click="cause.votes++")
+                      v-btn(text large block @click="cause.cause_total_up_votes++")
                         v-icon(color="green darken-2" large center) mdi-chevron-up
                         span Up vote ({{ cause.cause_total_up_votes }})
                 v-col(cols="6")
