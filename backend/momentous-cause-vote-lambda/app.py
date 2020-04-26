@@ -2,6 +2,7 @@ import os
 import boto3
 import json
 import decimal
+import urllib.parse
 from pprint import pprint as pp
 
 from boto3.dynamodb.conditions import Key, Attr
@@ -10,12 +11,41 @@ from encoder_class import DecimalEncoder
 
 
 def lambda_handler(event, context):
+    if event["httpMethod"] == "GET":
+        response = get_cause_vote(event, context)
+        return response
     if event["httpMethod"] == "POST":
         response = post_cause_vote(event, context)
         return response
     if event["httpMethod"] == "DELETE":
         response = delete_cause_vote(event, context)
         return response
+
+
+def get_cause_vote(event, context):
+    table = __get_table_client()
+    user_id = event["pathParameters"]["user_id"]
+    cause_id = event["pathParameters"]["cause_id"]
+
+    PK, SK = _get_keys(user_id, cause_id)
+    print("Key: ", json.dumps({"PK": PK, "SK": SK}, indent=4))
+
+    try:
+        data = table.get_item(Key={"PK": PK, "SK": SK}, ReturnConsumedCapacity="TOTAL")
+        if not data.get("Item"):
+            raise KeyError
+
+    except ClientError as e:
+        print(e.response["Error"]["Message"])
+        return _response(500, {"status": "DynamoDB Client Error"})
+    except KeyError as e:
+        print(e)
+        return _response(404, {"status": "ITEM NOT FOUND"})
+    else:
+        print("GetItem succeeded:")
+        print(json.dumps(data, indent=4, cls=DecimalEncoder))
+
+    return _response(200, data["Item"])
 
 
 def post_cause_vote(event, context):
@@ -55,6 +85,7 @@ def post_cause_vote(event, context):
         print("PutItem succeeded:")
         print(json.dumps(item, indent=4, cls=DecimalEncoder))
         PK, SK = _get_cause_keys(user_id, cause_id)
+        SK = urllib.parse.unquote(payload["SK"])
         if item["vote"] == "UP":
             vote_attribute = "cause_total_up_votes"
         else:
@@ -100,6 +131,9 @@ def delete_cause_vote(event, context):
     else:
         print("DeleteItem succeeded:")
         PK, SK = _get_cause_keys(user_id, cause_id)
+        SK = urllib.parse.unquote(event["pathParameters"]["SK"])
+
+        print("ITEM SK " + SK)
         if response["Attributes"]["vote"] == "UP":
             vote_attribute = "cause_total_up_votes"
         else:

@@ -1,12 +1,12 @@
 openapi: 3.0.3
 info:
   description: Momentous web service spec
-  version: "0.5.0"
+  version: "0.7.0"
   title: Momentous web service spec
   contact:
     email: k.hasan.rajib@gmail.cloud
 servers:
-  - url: 'https://gkgrkwk5t4.execute-api.us-west-2.amazonaws.com/{basePath}'
+  - url: 'https://n36xprkiki.execute-api.us-west-2.amazonaws.com/{basePath}'
     variables:
       basePath:
         default: dev
@@ -18,8 +18,10 @@ x-amazon-apigateway-request-validators:
     validateRequestBody: false
     validateRequestParameters: true
 x-amazon-apigateway-minimum-compression-size: 1024
+x-amazon-apigateway-binary-media-types:
+  - multipart/form-data
 paths:
-  /cause/list:
+  /causes/list:
     get:
       tags:
         - causes
@@ -45,7 +47,59 @@ paths:
         contentHandling: CONVERT_TO_TEXT
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
-  '/cause/crud/{user_id}':
+      
+  /momentous/hash/donate:
+    post:
+      tags:
+        - donate
+      summary: donate all generated hash to the cause
+      operationId: donateToTopCauseUser
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousDonateHashFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+      
+  '/cause/asset/images/{user_id}':
+    post:
+      tags:
+        - causes
+      summary: image upload endpoint
+      operationId: uploadCauseImage
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to add a cause asset
+          schema:
+            type: string
+            minLength: 10
+            format: uuid
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousCauseAssetFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+  
+  '/cause/create/{user_id}':
     post:
       tags:
         - causes
@@ -58,6 +112,7 @@ paths:
           description: pass an user_id to add a cause
           schema:
             type: string
+            minLength: 10
             format: uuid
       requestBody:
         required: true
@@ -80,7 +135,7 @@ paths:
         contentHandling: CONVERT_TO_TEXT
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
-  '/cause/crud/{user_id}/{cause_id}':
+  '/cause/{user_id}/{cause_id}':
     get:
       tags:
         - causes
@@ -93,6 +148,7 @@ paths:
           description: pass an user_id to get a cause details
           schema:
             type: string
+            minLength: 10
             format: uuid
         - name: cause_id
           in: path
@@ -100,6 +156,7 @@ paths:
           description: pass a cause id to get a cause details
           schema:
             type: string
+            minLength: 10
       responses:
         '200':
           description: successful operation
@@ -114,6 +171,8 @@ paths:
         contentHandling: CONVERT_TO_TEXT
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
+      
+  '/cause/update/{user_id}/{cause_id}':
     put:
       tags:
         - causes
@@ -126,6 +185,7 @@ paths:
           description: pass an user_id to update a cause
           schema:
             type: string
+            minLength: 10
             format: uuid
         - name: cause_id
           in: path
@@ -133,6 +193,7 @@ paths:
           description: pass a cause id to update a cause
           schema:
             type: string
+            minLength: 10
       requestBody:
         required: true
         content:
@@ -155,10 +216,148 @@ paths:
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
   
-  /cause/vote/{user_id}/{cause_id}:
+  '/user/wallet/{user_id}':
+    get:
+      tags:
+        - user
+      summary: retrieve operation for user wallet
+      operationId: getUserWalletByUserId
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to get user wallet details
+          schema:
+            type: string
+            minLength: 10
+            format: uuid
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousUserWalletCRUDFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+    
     post:
       tags:
-        - causes
+        - user
+      summary: create operation for user wallet
+      operationId: createUserWalletByUserId
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to add a wallet
+          schema:
+            type: string
+            minLength: 10
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserWalletPost'
+                
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousUserWalletCRUDFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+      
+    put:
+      tags:
+        - user
+      summary: update operation for user wallet
+      operationId: updateUserWalletByUserId
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to update wallet
+          schema:
+            type: string
+            minLength: 10
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserWallet'
+        description: Wallet information to update
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousUserWalletCRUDFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+      
+  /cause/vote/{user_id}/{cause_id}:
+    get:
+      tags:
+        - voting
+      summary: retrieve operation for user vote
+      operationId: getUserVoteByUserId
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: pass an user_id to get user wallet details
+          schema:
+            type: string
+            minLength: 10
+            format: uuid
+        - name: cause_id
+          in: path
+          required: true
+          description: pass an cause_id to get user voting details
+          schema:
+            type: string
+            minLength: 10
+            format: uuid
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousCauseVoteFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
+    post:
+      tags:
+        - voting
       summary: create operation for a vote
       operationId: createVoteByCauseId
       parameters:
@@ -168,6 +367,7 @@ paths:
           description: pass an user_id to vote for a cause
           schema:
             type: string
+            minLength: 10
             format: uuid
         - name: cause_id
           in: path
@@ -175,6 +375,7 @@ paths:
           description: pass a cause_id to vote for a cause
           schema:
             type: string
+            minLength: 10
       requestBody:
         required: true
         content:
@@ -196,10 +397,11 @@ paths:
         contentHandling: CONVERT_TO_TEXT
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
-    
+  
+  /cause/vote/{user_id}/{cause_id}/{SK}:  
     delete:
       tags:
-        - causes
+        - voting
       summary: delete operation for a vote
       operationId: deleteVoteByCauseId
       parameters:
@@ -209,6 +411,7 @@ paths:
           description: pass an user_id to delete a vote for a cause
           schema:
             type: string
+            minLength: 10
             format: uuid
         - name: cause_id
           in: path
@@ -216,6 +419,14 @@ paths:
           description: pass a cause_id to delete a vote for a cause
           schema:
             type: string
+            minLength: 10
+        - name: SK
+          in: path
+          required: true
+          description: pass a SK of the cause
+          schema:
+            type: string
+            minLength: 10
       responses:
         '200':
           description: successful operation
@@ -230,11 +441,46 @@ paths:
         contentHandling: CONVERT_TO_TEXT
         type: aws_proxy
       x-amazon-apigateway-request-validator: basic
+      
+  /users/leaderboard:
+    get:
+      tags:
+        - leaders
+      summary: find list of leader
+      operationId: listUsersByHash
+      parameters:
+        - name: order
+          in: query
+          description: pass an TOTAL or DAILY for sorting
+          schema:
+            type: string
+            enum: ["TOTAL", "DAILY"]
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: number of records to get
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: bad input parameter
+      x-amazon-apigateway-integration:
+        uri:
+          'Fn::Sub': >-
+            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MomentousLeadersListFunction.Arn}/invocations
+        httpMethod: POST
+        passthroughBehavior: WHEN_NO_TEMPLATES
+        contentHandling: CONVERT_TO_TEXT
+        type: aws_proxy
+      x-amazon-apigateway-request-validator: basic
   
 components:
   schemas:
     CauseDetails:
       properties:
+        user_name:
+          type: string
         content:
           type: string
         images:
@@ -250,5 +496,20 @@ components:
         vote:
           type: string
           enum: ['UP', 'DOWN']
+        SK:
+          type: string
       required:
         - vote
+        - SK
+    UserWallet:
+      properties:
+        hash_increment:
+          type: integer
+      required:
+        - hash_increment
+    UserWalletPost:
+      properties:
+        user_name:
+          type: string
+      required:
+        - user_name

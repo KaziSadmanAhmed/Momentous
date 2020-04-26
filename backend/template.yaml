@@ -71,13 +71,99 @@ Resources:
         GetRecentCauses:
           Type: Api
           Properties:
-            Path: /cause/list
+            Path: /causes/list
             Method: GET
             RestApiId:
               Ref: MomentousApi
       
     DependsOn: MomentousTable
     
+  MomentousCauseAssetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Cause asset upload function
+      FunctionName: momentous-cause-asset-upload
+      CodeUri: ./momentous-cause-asset-upload-lambda
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - Ref: LayerDependencies
+      Policies:
+        - S3CrudPolicy:
+            BucketName: momentous.cloud
+      MemorySize: 256
+      Tracing: Active
+      Environment:
+        Variables:
+          ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
+          # TABLE_NAME: momentous-table
+      Events:
+        UploadCauseImage:
+          Type: Api
+          Properties:
+            Path: /cause/asset/images/{user_id}
+            Method: POST
+            RestApiId:
+              Ref: MomentousApi
+    
+  MomentousLeadersListFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Leader list retrieve function
+      FunctionName: momentous-leaders-listing
+      CodeUri: ./momentous-leaders-listing-lambda
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - Ref: LayerDependencies
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref MomentousTable
+      MemorySize: 256
+      Tracing: Active
+      Environment:
+        Variables:
+          ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
+          TABLE_NAME: momentous-table
+      Events:
+        GetLeaders:
+          Type: Api
+          Properties:
+            Path: /users/leaderboard
+            Method: GET
+            RestApiId:
+              Ref: MomentousApi
+      
+    DependsOn: MomentousTable
+  
+  MomentousUserWalletCRUDFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: User wallet CRUD function
+      FunctionName: momentous-user-wallet-crud
+      CodeUri: ./momentous-user-wallet-crud-lambda
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - Ref: LayerDependencies
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MomentousTable
+      MemorySize: 256
+      Tracing: Active
+      Environment:
+        Variables:
+          ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
+          TABLE_NAME: momentous-table
+      Events:
+        CauseGetPut:
+          Type: Api
+          Properties:
+            Path: /user/wallet/{user_id}
+            Method: ANY
+            RestApiId:
+              Ref: MomentousApi
+              
   MomentousCauseCRUDFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -98,17 +184,24 @@ Resources:
           ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
           TABLE_NAME: momentous-table
       Events:
-        CauseGetPut:
+        CauseGet:
           Type: Api
           Properties:
-            Path: /cause/crud/{user_id}/{cause_id}
-            Method: ANY
+            Path: /cause/{user_id}/{cause_id}
+            Method: GET
+            RestApiId:
+              Ref: MomentousApi
+        CausePut:
+          Type: Api
+          Properties:
+            Path: /cause/update/{user_id}/{cause_id}
+            Method: PUT
             RestApiId:
               Ref: MomentousApi
         CausePost:
           Type: Api
           Properties:
-            Path: /cause/crud/{user_id}
+            Path: /cause/create/{user_id}
             Method: POST
             RestApiId:
               Ref: MomentousApi
@@ -135,6 +228,13 @@ Resources:
           ENVIRONMENT: !FindInMap [Environment, !Ref Environment, 'AbbrLowerCase']
           TABLE_NAME: momentous-table
       Events:
+        CauseGetVote:
+          Type: Api
+          Properties:
+            Path: /cause/vote/{user_id}/{cause_id}
+            Method: GET
+            RestApiId:
+              Ref: MomentousApi
         CausePostVote:
           Type: Api
           Properties:
@@ -145,13 +245,39 @@ Resources:
         CauseDeleteVote:
           Type: Api
           Properties:
-            Path: /cause/vote/{user_id}/{cause_id}
+            Path: /cause/vote/{user_id}/{cause_id}/{SK}
             Method: DELETE
             RestApiId:
               Ref: MomentousApi
       
     DependsOn: MomentousTable
-
+  
+  MomentousDonateHashFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Donate function
+      CodeUri: ./momentous-donate-lambda
+      FunctionName: momentous-donate-hash
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Layers:
+        - Ref: LayerDependencies
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: !Ref MomentousTable
+      MemorySize: 256
+      Environment:
+        Variables:
+          AWS_COGNITO_REGION: !Sub ${AWS::Region}
+          TABLE_NAME: momentous-table
+      Events:
+        DonateHash:
+          Type: Api
+          Properties:
+            Path: /momentous/hash/donate
+            Method: POST
+            RestApiId:
+              Ref: MomentousApi
 
   MomentousAuthFunction:
     Type: AWS::Serverless::Function
@@ -316,11 +442,21 @@ Resources:
         AttributeType: S
       - AttributeName: cause_total_up_votes
         AttributeType: N
-      - AttributeName: cause_total_down_votes
-        AttributeType: N
       - AttributeName: cause_status
         AttributeType: S
+      - AttributeName: hash_generated_daily
+        AttributeType: N
+      - AttributeName: hash_generated_total
+        AttributeType: N
       LocalSecondaryIndexes:
+      - IndexName: hash_generated_total-index
+        KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: hash_generated_total
+          KeyType: RANGE
+        Projection:
+          ProjectionType: ALL
       - IndexName: cause_created_at-index
         KeySchema:
         - AttributeName: PK
@@ -337,11 +473,11 @@ Resources:
           KeyType: RANGE
         Projection:
           ProjectionType: ALL
-      - IndexName: cause_total_down_votes-index
+      - IndexName: hash_generated_daily-index
         KeySchema:
         - AttributeName: PK
           KeyType: HASH
-        - AttributeName: cause_total_down_votes
+        - AttributeName: hash_generated_daily
           KeyType: RANGE
         Projection:
           ProjectionType: ALL
