@@ -15,7 +15,7 @@
             v-img(:src="profile")
         v-row.py-12(v-else justify="center")
           h2.display-1.white--text Momentous
-          p.white--text Coins for the community!
+          p.white--text Coins for the Community
         v-row.pt-3(align="center" justify="center")
           h3.white--text.text-center {{userName}}
         v-row(align="center" justify="center")

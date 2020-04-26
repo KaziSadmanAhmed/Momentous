@@ -1,2 +1,2 @@
 # Momentous
-Momentous - Coins for the community!
+Momentous - Coins for the Community
