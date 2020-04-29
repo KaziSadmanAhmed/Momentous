@@ -61,9 +61,12 @@ export default {
           this.snackbar = true
           this.isFormLoading = false
           // this needa be updated to check which page to redirect fron which page
-          this.$router.push({
-            name: 'donate'
-          })
+          if (this.$route.name === 'index') {
+            this.$router.push({
+              name: 'donate'
+            })
+          }
+
           console.log('login success !')
         })
         .catch((err) => {
