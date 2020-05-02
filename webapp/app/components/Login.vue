@@ -46,6 +46,17 @@ export default {
       errMessage: ''
     }
   },
+  computed: {
+    openJoinDialog: {
+      get() {
+        return this.$store.getters['auth/getJoinDialog']
+      },
+
+      set() {
+        return this.$store.commit('auth/setJoinDialog', false)
+      }
+    }
+  },
   methods: {
     login() {
       this.isFormLoading = true
@@ -61,9 +72,14 @@ export default {
           this.snackbar = true
           this.isFormLoading = false
           // this needa be updated to check which page to redirect fron which page
-          this.$router.push({
-            name: 'donate'
-          })
+          if (this.$route.name === 'index') {
+            this.$router.push({
+              name: 'donate'
+            })
+          }
+
+          this.$store.commit('auth/setJoinDialog', false)
+
           console.log('login success !')
         })
         .catch((err) => {

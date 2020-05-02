@@ -39,8 +39,8 @@
       template(v-slot:append)
         div.pa-2
           v-btn(v-if="$auth.isAuthenticated()" outlined block color="white" @click="signOut") Sign out
-          v-btn(v-else outlined block color="white" @click="openRegisterModal = !openRegisterModal") Register
-      v-dialog(width="550" v-model="openRegisterModal")
+          v-btn(v-else outlined block color="white" @click="openModal") Register
+      v-dialog(width="550" v-model="openJoinDialog")
         LoginOrRegister
       //-if user is not registered
       //- v-dialog(width="500" v-model="openRegisterModal")
@@ -65,7 +65,6 @@ export default {
   },
   data() {
     return {
-      openRegisterModal: false,
       userName: '',
       userEmail: '',
       drawer: true,
@@ -80,7 +79,16 @@ export default {
   computed: {
     ...mapGetters({
       wallet: 'wallet/getWallet'
-    })
+    }),
+    openJoinDialog: {
+      get() {
+        return this.$store.getters['auth/getJoinDialog']
+      },
+
+      set() {
+        return this.$store.commit('auth/setJoinDialog', false)
+      }
+    }
   },
   created() {
     if (this.$auth.isAuthenticated()) {
@@ -89,9 +97,15 @@ export default {
       this.userEmail = `${user.email}`
     }
   },
+  mounted() {
+    console.log(this.openJoinDialog)
+  },
   methods: {
     signOut() {
       this.$auth.logout()
+    },
+    openModal() {
+      this.$store.commit('auth/setJoinDialog', true)
     }
   }
 }

@@ -96,6 +96,17 @@ export default {
   //     return this.$auth.getUser()
   //   }
   // },
+  computed: {
+    openJoinDialog: {
+      get() {
+        return this.$store.getters['auth/getJoinDialog']
+      },
+
+      set() {
+        return this.$store.commit('auth/setJoinDialog', false)
+      }
+    }
+  },
   methods: {
     login() {
       return this.$auth
@@ -151,6 +162,7 @@ export default {
           await this.$api.createWallet(user.sub, { user_name: fullname })
           this.snackbar = true
           this.verificationDialog = false
+          this.$store.commit('auth/setJoinDialog', false)
           this.$router.push({
             name: 'donate'
           })
