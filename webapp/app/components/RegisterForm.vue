@@ -25,10 +25,10 @@
         
       v-text-field(
         v-model="userInfo.password" 
-        :type="isVisible ? 'text' : 'password'"
-        :append-icon="isVisible ? 'mdi-eye' : 'mdi-eye-off'"
+        :type="isPassVisible ? 'text' : 'password'"
+        :append-icon="isPassVisible ? 'mdi-eye' : 'mdi-eye-off'"
         :rules="[required('password'), minLength('Password', 8)]"
-        @click:append="isVisible = !isVisible"
+        @click:append="isPassVisible = !isPassVisible"
         color="teal darken-1"
         label="Password"
         :loading="isFormLoading"
@@ -36,10 +36,10 @@
         
       v-text-field(
         v-model="userInfo.confirmPassword" 
-        :type="isVisible ? 'text' : 'password'"
-        :append-icon="isVisible ? 'mdi-eye' : 'mdi-eye-off'"
+        :type="isConfirmPassVisible ? 'text' : 'password'"
+        :append-icon="isConfirmPassVisible ? 'mdi-eye' : 'mdi-eye-off'"
         :rules="[required('password'), minLength('Password', 8), matchPassword(userInfo.password)]"
-        @click:append="isVisible = !isVisible"
+        @click:append="isConfirmPassVisible = !isConfirmPassVisible"
         color="teal darken-1"
         label="Confirm Password"
         :loading="isFormLoading"
@@ -82,7 +82,8 @@ export default {
         familyName: ''
       },
       ...validations,
-      isVisible: false,
+      isPassVisible: false,
+      isConfirmPassVisible: false,
       snackbar: false,
       timeout: 3500,
       isFormLoading: false,
