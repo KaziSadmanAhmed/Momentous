@@ -46,6 +46,17 @@ export default {
       errMessage: ''
     }
   },
+  computed: {
+    openJoinDialog: {
+      get() {
+        return this.$store.getters['auth/getJoinDialog']
+      },
+
+      set() {
+        return this.$store.commit('auth/setJoinDialog', false)
+      }
+    }
+  },
   methods: {
     login() {
       this.isFormLoading = true
@@ -66,6 +77,8 @@ export default {
               name: 'donate'
             })
           }
+
+          this.$store.commit('auth/setJoinDialog', false)
 
           console.log('login success !')
         })

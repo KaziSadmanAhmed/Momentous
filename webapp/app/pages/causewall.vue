@@ -21,7 +21,7 @@
                     v-col.d-flex.justify-end(cols="12" md="6")
                       v-btn(color="primary" @click="createNewCause") Post
             //- if user is authenticated, will not let him post cause but register
-            v-dialog(width="550" v-model="openRegisterModal")
+            v-dialog(width="550" v-model="openJoinDialog")
               LoginOrRegister
     v-divider
     v-container
@@ -55,17 +55,17 @@
                 v-col(cols="6")
                   v-tooltip(bottom)
                     template(v-slot:activator="{on}")
-                      v-btn(text large block @click="giveVote(cause.cause_id, 'UP', cause.SK)")
+                      v-btn.px-0.px-md-3(text large block @click="giveVote(cause.cause_id, 'UP', cause.SK)")
                         v-icon(color="green darken-2" large center) mdi-chevron-up
                         span Up vote ({{ cause.cause_total_up_votes }})
                 v-col(cols="6")
                   v-tooltip(bottom)
                     template(v-slot:activator="{on}")
-                      v-btn(text large block @click="giveVote(cause.cause_id, 'DOWN', cause.SK)")
+                      v-btn.px-0.px-md-3(text large block @click="giveVote(cause.cause_id, 'DOWN', cause.SK)")
                         v-icon(color="red darken-2" large center) mdi-chevron-down
                         span Down vote ({{ cause.cause_total_down_votes }})
-    v-snackbar(v-model="vote" color="green darken-2")
-      h2 Voted!
+    v-snackbar(v-model="vote" :color="snackbarColor")
+      h2 {{snackbarMessage}}
 </template>
 <script>
 import LoginOrRegister from '../components/loginOrRegister'
@@ -82,7 +82,20 @@ export default {
       newCauseContent: '',
       newCauseImage: null,
       causes: [],
+      snackbarMessage: 'Voted!',
+      snackbarColor: 'green darken-2',
       vote: false
+    }
+  },
+  computed: {
+    openJoinDialog: {
+      get() {
+        return this.$store.getters['auth/getJoinDialog']
+      },
+
+      set() {
+        return this.$store.commit('auth/setJoinDialog', false)
+      }
     }
   },
   async created() {
@@ -91,12 +104,15 @@ export default {
       this.isAuthenticated = true
     }
   },
+  updated() {
+    console.log(this.causes)
+  },
   methods: {
     openModal() {
       if (this.isAuthenticated) {
         this.openPostCauseDialog = true
       } else {
-        this.openRegisterModal = true
+        this.$store.commit('auth/setJoinDialog', true)
       }
     },
     async createNewCause() {
@@ -121,12 +137,20 @@ export default {
           voteType,
           SK
         }
-        const res = await this.$api.giveVote(data)
-        this.vote = true
-        this.causes = await this.$api.listCauses()
-        console.log(res)
+        try {
+          const res = await this.$api.giveVote(data)
+          this.snackbarColor = 'green darken-2'
+          this.snackbarMessage = 'Voted!'
+          this.vote = true
+          this.causes = await this.$api.listCauses()
+          console.log(res)
+        } catch (err) {
+          this.snackbarColor = 'red darken-2'
+          this.snackbarMessage = 'Already voted!'
+          this.vote = true
+        }
       } else {
-        this.openRegisterModal = true
+        this.$store.commit('auth/setJoinDialog', true)
       }
     }
   }
